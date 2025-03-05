@@ -5,7 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const router = express.Router();
 
-// Uploads klasörünü kontrol et ve oluştur
+// Check and create uploads directory
 const uploadDir = path.join(__dirname, '../uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
@@ -32,7 +32,7 @@ const upload = multer({
     if (allowedTypes.includes(ext)) {
       cb(null, true);
     } else {
-      cb(new Error('Sadece PDF, DOC ve DOCX dosyaları kabul edilir.'));
+      cb(new Error('Only PDF, DOC and DOCX files are accepted.'));
     }
   }
 });
@@ -40,7 +40,7 @@ const upload = multer({
 router.post('/', upload.single('resume'), async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: 'Dosya yüklenemedi' });
+      return res.status(400).json({ error: 'File could not be uploaded' });
     }
     
     // Log file information for debugging
@@ -54,7 +54,7 @@ router.post('/', upload.single('resume'), async (req, res) => {
     // Verify file exists after upload
     if (!fs.existsSync(req.file.path)) {
       console.error('File not found after upload:', req.file.path);
-      return res.status(500).json({ error: 'Dosya yüklendi ancak kaydedilemedi' });
+      return res.status(500).json({ error: 'File was uploaded but could not be saved' });
     }
     
     // Set CORS headers explicitly
@@ -65,7 +65,7 @@ router.post('/', upload.single('resume'), async (req, res) => {
     res.json({
       success: true,
       filePath: req.file.filename, // Just return the filename
-      message: 'Dosya başarıyla yüklendi'
+      message: 'File uploaded successfully'
     });
   } catch (error) {
     console.error('Upload error:', error);

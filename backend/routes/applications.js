@@ -3,12 +3,12 @@ const express = require('express');
 const Application = require('../models/Application');
 const router = express.Router();
 
-// Başvuru ekleme
+// Add application
 router.post('/', async (req, res) => {
   try {
     const applicationData = {
       ...req.body,
-      user: req.body.user || 'demoUserId123', // Default demo kullanıcı
+      user: req.body.user || 'demoUserId123', // Default demo user
       timeline: [{
         status: req.body.status,
         notes: req.body.notes?.[0]?.content || '',
@@ -22,16 +22,16 @@ router.post('/', async (req, res) => {
   } catch (error) {
     console.error('Application save error:', error);
     res.status(500).json({ 
-      error: 'Başvuru kaydedilemedi.',
+      error: 'Application could not be saved.',
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
 
-// Kullanıcının başvurularını getirme
+// Get user's applications
 router.get('/:userId', async (req, res) => {
   try {
-    // String olarak userId ile sorgulama
+    // Query with userId as string
     const applications = await Application.find({ 
       user: req.params.userId 
     }).sort({ lastUpdated: -1 });
@@ -40,20 +40,20 @@ router.get('/:userId', async (req, res) => {
   } catch (error) {
     console.error('Application fetch error:', error);
     res.status(500).json({ 
-      error: 'Başvurular getirilemedi.',
+      error: 'Applications could not be retrieved.',
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
 
-// Başvuru güncelleme
+// Update application
 router.put('/:id', async (req, res) => {
   try {
     const { status, notes } = req.body;
     const application = await Application.findById(req.params.id);
 
     if (!application) {
-      return res.status(404).json({ error: 'Başvuru bulunamadı.' });
+      return res.status(404).json({ error: 'Application not found.' });
     }
 
     // Add new status to timeline if it changed
@@ -80,24 +80,24 @@ router.put('/:id', async (req, res) => {
   } catch (error) {
     console.error('Application update error:', error);
     res.status(500).json({ 
-      error: 'Başvuru güncellenemedi.',
+      error: 'Application could not be updated.',
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
 
-// Başvuru silme
+// Delete application
 router.delete('/:id', async (req, res) => {
   try {
     const application = await Application.findByIdAndDelete(req.params.id);
     if (!application) {
-      return res.status(404).json({ error: 'Başvuru bulunamadı.' });
+      return res.status(404).json({ error: 'Application not found.' });
     }
-    res.json({ message: 'Başvuru başarıyla silindi.' });
+    res.json({ message: 'Application successfully deleted.' });
   } catch (error) {
     console.error('Application delete error:', error);
     res.status(500).json({ 
-      error: 'Başvuru silinemedi.',
+      error: 'Application could not be deleted.',
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
