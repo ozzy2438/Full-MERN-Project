@@ -3,43 +3,43 @@ const express = require('express');
 const axios = require('axios');
 const router = express.Router();
 
-// GET /api/jobs - İş ilanlarını arama
+// GET /api/jobs - Search job listings
 router.get('/', async (req, res) => {
   try {
     const { query, analysis, page = 1, location } = req.query;
     
-    // Jooble API anahtarını kontrol et
+    // Check Jooble API key
     const joobleApiKey = process.env.JOOBLE_API_KEY || '0b1d44cd-b23c-4bc2-8f0b-c4b17262f948';
     
     if (!joobleApiKey) {
       return res.status(500).json({ error: 'Jooble API key is not configured' });
     }
 
-    // Varsayılan arama sorgusu
+    // Default search query
     let searchQuery = query || "software developer";
-    let jobType = ""; // Varsayılan olarak tüm iş türleri
+    let jobType = ""; // Default to all job types
     let searchLocation = location || "";
 
-    // Analiz verisi varsa, daha akıllı bir arama sorgusu oluştur
+    // If analysis data exists, create a smarter search query
     if (analysis) {
       console.log('Raw analysis data:', analysis);
       
       try {
         const parsedAnalysis = typeof analysis === 'string' ? JSON.parse(analysis) : analysis;
         
-        // Önerilen iş başlıklarını çıkar
+        // Extract recommended job titles
         const jobTitles = parsedAnalysis.recommendedJobTitles || 
                          parsedAnalysis.jobTitles || 
                          [];
         
-        // Anahtar becerileri çıkar
+        // Extract key skills
         const skills = parsedAnalysis.keySkills || 
                       parsedAnalysis.skills || 
                       parsedAnalysis.personalSkills || 
                       parsedAnalysis.technicalSkills || 
                       [];
         
-        // Sektör bilgisini çıkar
+        // Extract industry information
         const industry = parsedAnalysis.industryFit || 
                         parsedAnalysis.industry || 
                         '';
@@ -50,18 +50,18 @@ router.get('/', async (req, res) => {
           industry
         });
         
-        // Arama sorgusunu oluştur
+        // Create search query
         if (jobTitles.length > 0) {
-          // İlk 2 önerilen iş başlığını kullan
+          // Use first 2 recommended job titles
           const primaryJobTitles = jobTitles.slice(0, 2);
           
-          // Anahtar becerilerden en önemli 3 tanesini seç
+          // Select top 3 key skills
           const topSkills = skills.slice(0, 3);
           
-          // Arama sorgusunu oluştur
+          // Create search query
           searchQuery = primaryJobTitles.join(' ');
           
-          // Becerileri ekle
+          // Add skills
           if (topSkills.length > 0) {
             searchQuery += ` ${topSkills.join(' ')}`;
           }
@@ -70,14 +70,14 @@ router.get('/', async (req, res) => {
         }
       } catch (parseError) {
         console.error('Error parsing analysis data:', parseError);
-        // Analiz verisi ayrıştırılamazsa, varsayılan sorguyu kullan
+        // If analysis data can't be parsed, use default query
       }
     }
 
     console.log('Final search query:', searchQuery);
     console.log('Location:', searchLocation);
 
-    // Jooble API'ye istek gönder
+    // Send request to Jooble API
     console.log('Sending request to Jooble API...');
     const joobleResponse = await axios.post(
       `https://jooble.org/api/${joobleApiKey}`,
@@ -90,17 +90,17 @@ router.get('/', async (req, res) => {
         headers: {
           'Content-Type': 'application/json'
         },
-        timeout: 30000 // 30 saniye timeout
+        timeout: 30000 // 30 seconds timeout
       }
     );
 
-    // Yanıt kontrolü
+    // Check response
     if (!joobleResponse.data || !joobleResponse.data.jobs) {
       console.error('Invalid response from Jooble API:', joobleResponse.data);
       return res.status(500).json({ error: 'Invalid response from Jooble API' });
     }
 
-    // İş ilanlarını işle
+    // Process job listings
     const jobs = joobleResponse.data.jobs.map(job => ({
       id: job.id || `jooble-${Math.random().toString(36).substring(7)}`,
       title: job.title || 'No Title',
@@ -117,7 +117,7 @@ router.get('/', async (req, res) => {
     
     console.log(`Jooble API returned ${jobs.length} jobs`);
 
-    // Yanıtı döndür
+    // Return response
     return res.json({
       jobs,
       totalResults,
@@ -144,7 +144,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST /api/jobs/trackClick - İş ilanı tıklamalarını takip et
+// POST /api/jobs/trackClick - Track job listing clicks
 router.post('/trackClick', async (req, res) => {
   try {
     const { jobId, jobTitle, jobCompany, jobUrl } = req.body;
@@ -161,7 +161,7 @@ router.post('/trackClick', async (req, res) => {
       timestamp: new Date().toISOString()
     });
     
-    // Burada veritabanına kayıt yapılabilir
+    // Database record can be created here
     
     return res.json({ success: true, message: 'Job click tracked successfully' });
   } catch (error) {
@@ -170,7 +170,7 @@ router.post('/trackClick', async (req, res) => {
   }
 });
 
-// PUT /api/jobs/updateStatus - İş başvuru durumunu güncelle
+// PUT /api/jobs/updateStatus - Update job application status
 router.put('/updateStatus', async (req, res) => {
   try {
     const { jobId, status, notes } = req.body;
@@ -186,7 +186,7 @@ router.put('/updateStatus', async (req, res) => {
       timestamp: new Date().toISOString()
     });
     
-    // Burada veritabanına kayıt yapılabilir
+    // Database record can be created here
     
     return res.json({ success: true, message: 'Job application status updated successfully' });
   } catch (error) {
