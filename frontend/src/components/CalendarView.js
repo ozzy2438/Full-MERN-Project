@@ -10,27 +10,30 @@ import {
   Alert 
 } from '@mui/material';
 import api from '../services/api';
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import interactionPlugin from '@fullcalendar/interaction';
 
 // Status color mapping
 const STATUS_COLORS = {
-  'Başvuruldu': '#60a5fa', // Blue
-  'Değerlendiriliyor': '#a78bfa', // Purple
-  'Mülakat': '#f59e0b', // Amber
-  'Teklif': '#10b981', // Green
-  'Kabul Edildi': '#10b981', // Green
-  'Reddedildi': '#ef4444', // Red
-  'İptal': '#6b7280' // Gray
+  'Applied': '#3498db',
+  'Under Review': '#f39c12',
+  'Interview': '#2ecc71',
+  'Offer': '#9b59b6',
+  'Accepted': '#27ae60',
+  'Rejected': '#e74c3c',
+  'Cancelled': '#95a5a6'
 };
 
 // English to Turkish status mapping for display purposes
 const STATUS_DISPLAY_MAP = {
-  'Başvuruldu': 'Applied',
-  'Değerlendiriliyor': 'Under Review',
-  'Mülakat': 'Interview',
-  'Teklif': 'Offer',
-  'Kabul Edildi': 'Accepted',
-  'Reddedildi': 'Rejected',
-  'İptal': 'Cancelled'
+  'Applied': 'Applied',
+  'Under Review': 'Under Review',
+  'Interview': 'Interview',
+  'Offer': 'Offer',
+  'Accepted': 'Accepted',
+  'Rejected': 'Rejected',
+  'Cancelled': 'Cancelled'
 };
 
 const CalendarView = ({ userId }) => {
@@ -65,12 +68,12 @@ const CalendarView = ({ userId }) => {
               location: 'Remote',
               applicationUrl: 'https://example.com/job/123'
             },
-            status: 'Başvuruldu',
+            status: 'Applied',
             appliedAt: new Date().toISOString(),
             lastUpdated: new Date().toISOString(),
             timeline: [
               {
-                status: 'Başvuruldu',
+                status: 'Applied',
                 notes: 'Initial application submitted',
                 date: new Date().toISOString()
               }
@@ -90,17 +93,17 @@ const CalendarView = ({ userId }) => {
               location: 'Remote',
               applicationUrl: 'https://example.com/job/456'
             },
-            status: 'Mülakat',
+            status: 'Interview',
             appliedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
             lastUpdated: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
             timeline: [
               {
-                status: 'Başvuruldu',
+                status: 'Applied',
                 notes: 'Initial application submitted',
                 date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
               },
               {
-                status: 'Mülakat',
+                status: 'Interview',
                 notes: 'Scheduled for interview',
                 date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
               }
@@ -199,70 +202,45 @@ const CalendarView = ({ userId }) => {
   }
 
   return (
-    <Box sx={{ p: 1 }}>
-      <Typography variant="h6" gutterBottom>Calendar View - {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</Typography>
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '1px', textAlign: 'center' }}>
-          {/* Calendar Header */}
-          <div style={{ padding: '10px', fontWeight: 'bold', borderBottom: '1px solid #ddd' }}>Sun</div>
-          <div style={{ padding: '10px', fontWeight: 'bold', borderBottom: '1px solid #ddd' }}>Mon</div>
-          <div style={{ padding: '10px', fontWeight: 'bold', borderBottom: '1px solid #ddd' }}>Tue</div>
-          <div style={{ padding: '10px', fontWeight: 'bold', borderBottom: '1px solid #ddd' }}>Wed</div>
-          <div style={{ padding: '10px', fontWeight: 'bold', borderBottom: '1px solid #ddd' }}>Thu</div>
-          <div style={{ padding: '10px', fontWeight: 'bold', borderBottom: '1px solid #ddd' }}>Fri</div>
-          <div style={{ padding: '10px', fontWeight: 'bold', borderBottom: '1px solid #ddd' }}>Sat</div>
-          
-          {/* Calendar Days */}
-          {calendarDays.map((dayObj, index) => {
-            const dayApplications = dayObj.date ? getApplicationsForDay(dayObj.date) : [];
-            
-            return (
-              <div key={`day-${index}`} style={{ 
-                height: '100px', 
-                border: '1px solid #eee', 
-                padding: '5px',
-                position: 'relative',
-                backgroundColor: dayObj.day ? 'transparent' : '#f9fafb'
-              }}>
-                {dayObj.day && (
-                  <>
-                    <div style={{ position: 'absolute', top: '5px', left: '5px' }}>{dayObj.day}</div>
-                    <div style={{ marginTop: '25px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                      {dayApplications.map((app, appIndex) => (
-                        <div key={`app-${appIndex}`} style={{ 
-                          backgroundColor: STATUS_COLORS[app.status] || '#60a5fa', 
-                          color: 'white', 
-                          padding: '2px 5px', 
-                          borderRadius: '3px',
-                          fontSize: '11px',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          maxWidth: '100%'
-                        }}>
-                          {STATUS_DISPLAY_MAP[app.status] || app.status}: {app.job?.title || 'Job Application'}
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-            );
-          })}
-        </div>
-        
-        <Box sx={{ mt: 2 }}>
-          <Typography variant="subtitle1" gutterBottom>Color Legend:</Typography>
-          <Stack direction="row" spacing={2} flexWrap="wrap">
-            <Chip label="Applied" sx={{ bgcolor: STATUS_COLORS['Başvuruldu'], color: 'white' }} />
-            <Chip label="Under Review" sx={{ bgcolor: STATUS_COLORS['Değerlendiriliyor'], color: 'white' }} />
-            <Chip label="Interview" sx={{ bgcolor: STATUS_COLORS['Mülakat'], color: 'white' }} />
-            <Chip label="Offer" sx={{ bgcolor: STATUS_COLORS['Teklif'], color: 'white' }} />
-            <Chip label="Accepted" sx={{ bgcolor: STATUS_COLORS['Kabul Edildi'], color: 'white' }} />
-            <Chip label="Rejected" sx={{ bgcolor: STATUS_COLORS['Reddedildi'], color: 'white' }} />
-            <Chip label="Cancelled" sx={{ bgcolor: STATUS_COLORS['İptal'], color: 'white' }} />
-          </Stack>
-        </Box>
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h5" gutterBottom>
+        Application Calendar
+      </Typography>
+      
+      <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
+        {Object.entries(STATUS_COLORS).map(([status, color]) => (
+          <Chip
+            key={status}
+            label={STATUS_DISPLAY_MAP[status]}
+            sx={{
+              backgroundColor: color,
+              color: 'white',
+              '&:hover': {
+                backgroundColor: color,
+                opacity: 0.9
+              }
+            }}
+          />
+        ))}
+      </Box>
+
+      <Paper elevation={3} sx={{ p: 2 }}>
+        <FullCalendar
+          plugins={[dayGridPlugin, interactionPlugin]}
+          initialView="dayGridMonth"
+          events={applications}
+          eventContent={renderEventContent}
+          headerToolbar={{
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,dayGridWeek'
+          }}
+          buttonText={{
+            today: 'Today',
+            month: 'Month',
+            week: 'Week'
+          }}
+        />
       </Paper>
     </Box>
   );

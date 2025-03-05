@@ -91,12 +91,12 @@ api.interceptors.response.use(
       
       // Boş veya eksik veri kontrolü
       if (data === null || data === undefined) {
-        console.warn('⚠️ API yanıtı boş (null/undefined):', response.config.url);
+        console.warn('⚠️ API response is empty (null/undefined):', response.config.url);
       } else if (
         (Array.isArray(data) && data.length === 0) || 
         (typeof data === 'object' && Object.keys(data).length === 0)
       ) {
-        console.warn('⚠️ API yanıtı boş bir dizi veya nesne:', response.config.url);
+        console.warn('⚠️ API response is empty array or object:', response.config.url);
       }
     }
     
@@ -114,17 +114,17 @@ api.interceptors.response.use(
       
       // Özel hata mesajları
       if (error.response.status === 500) {
-        console.error('🔴 Sunucu hatası! Backend loglarını kontrol edin.');
+        console.error('🔴 Server error! Check backend logs.');
       } else if (error.response.status === 404) {
-        console.error('🔍 Kaynak bulunamadı! API endpoint doğru mu?');
+        console.error('🔍 Resource not found! Is the API endpoint correct?');
       } else if (error.response.status === 401) {
-        console.error('🔒 Yetkilendirme hatası! Oturum süresi dolmuş olabilir.');
+        console.error('🔒 Authorization error! Session may have expired.');
       } else if (error.response.status === 400) {
-        console.error('⚠️ Geçersiz istek! İstek parametreleri:', error.config.params || {}, 'İstek verisi:', error.config.data || {});
+        console.error('⚠️ Invalid request! Request parameters:', error.config.params || {}, 'Request data:', error.config.data || {});
       }
     } else if (error.request) {
       console.error('Network Error:', error.message);
-      console.error('🌐 Ağ hatası! Backend çalışıyor mu? CORS ayarları doğru mu?');
+      console.error('🌐 Network error! Is backend running? Are CORS settings correct?');
     } else {
       console.error('Error:', error.message);
     }
@@ -147,28 +147,28 @@ api.interceptors.response.use(
 const validateResponse = (response, expectedKeys = []) => {
   // Yanıt boş mu kontrol et
   if (!response) {
-    console.error('API yanıtı boş veya tanımsız:', response);
-    throw new Error('API yanıtı boş veya tanımsız');
+    console.error('API response is empty or undefined:', response);
+    throw new Error('API response is empty or undefined');
   }
 
   // Yanıt bir obje mi kontrol et
   if (typeof response !== 'object') {
-    console.error('API yanıtı bir obje değil:', response);
-    throw new Error('API yanıtı bir obje değil');
+    console.error('API response is not an object:', response);
+    throw new Error('API response is not an object');
   }
 
   // Beklenen anahtarlar var mı kontrol et
   if (expectedKeys.length > 0) {
     const missingKeys = expectedKeys.filter(key => !response.hasOwnProperty(key));
     if (missingKeys.length > 0) {
-      console.error(`API yanıtında eksik anahtarlar: ${missingKeys.join(', ')}`, response);
-      throw new Error(`API yanıtında eksik anahtarlar: ${missingKeys.join(', ')}`);
+      console.error(`API response missing keys: ${missingKeys.join(', ')}`, response);
+      throw new Error(`API response missing keys: ${missingKeys.join(', ')}`);
     }
   }
 
   return response;
 };
 
-// Hem default export hem de named export olarak dışa aktar
+// Export both as default and named export
 export { api, validateResponse };
 export default api; // Default export ekledik

@@ -45,19 +45,19 @@ const AnalysisResults = ({ analysis }) => {
   const [nextPageToken, setNextPageToken] = useState(null);
   const [processedAnalysis, setProcessedAnalysis] = useState(null);
 
-  // Analysis verilerini işle ve güvenli bir şekilde render edilebilir hale getir
+  // Process analysis data and make it safe to render
   useEffect(() => {
     if (analysis) {
       try {
         console.log("Raw analysis data received:", analysis);
         
-        // Nesne olabilecek tüm alanları kontrol et ve string'e dönüştür
+        // Check all fields that could be objects and convert to string
         const processed = {
           ...analysis,
           summary: typeof analysis.summary === 'object' ? 
                   JSON.stringify(analysis.summary) : 
                   analysis.summary || '',
-          // OpenAI API'den gelen veriler için özel işleme
+          // Special processing for data from OpenAI API
           skills: Array.isArray(analysis.personalSkills) ? analysis.personalSkills : 
                  Array.isArray(analysis.skills) ? analysis.skills : 
                  Array.isArray(analysis.keySkills) ? analysis.keySkills :
@@ -110,15 +110,15 @@ const AnalysisResults = ({ analysis }) => {
                     (typeof analysis.skillGaps === 'object' && analysis.skillGaps !== null) ? 
                     Object.values(analysis.skillGaps).filter(Boolean) : [],
           
-          // Detaylı analiz verilerini insights alanına ekle
+          // Add detailed analysis data to insights field
           insights: analysis.detailedAnalysis ? JSON.stringify(analysis.detailedAnalysis) : null
         };
         
         console.log("Processed analysis data:", processed);
         setProcessedAnalysis(processed);
       } catch (error) {
-        console.error('Analysis verilerini işlerken hata oluştu:', error);
-        // Hata durumunda basit bir processed objesi oluştur
+        console.error('Error processing analysis data:', error);
+        // Create a simple processed object in case of error
         setProcessedAnalysis({
           ...analysis,
           summary: String(analysis.summary || ''),
@@ -142,7 +142,7 @@ const AnalysisResults = ({ analysis }) => {
       setLoading(true);
       setError(null);
 
-      // Önceden tanımlanmış anahtar kelimeler
+      // Predefined keywords
       const keySkills = processedAnalysis?.skills && processedAnalysis.skills.length > 0 
         ? processedAnalysis.skills.slice(0, 3).join(' ') 
         : '';
@@ -151,7 +151,7 @@ const AnalysisResults = ({ analysis }) => {
         ? processedAnalysis.jobTitles[0] 
         : '';
       
-      // Arama sorgusu oluştur
+      // Create search query
       const searchQuery = customQuery || `${keyRoles} ${keySkills}`.trim();
       
       console.log('Searching jobs with query:', searchQuery);
@@ -163,7 +163,7 @@ const AnalysisResults = ({ analysis }) => {
           page: pageNumber,
           location: location || ''
         },
-        timeout: 60000 // 60 saniye timeout
+        timeout: 60000 // 60 seconds timeout
       });
 
       console.log('Job search response:', response.data);
@@ -181,13 +181,13 @@ const AnalysisResults = ({ analysis }) => {
       console.error('Error fetching jobs:', err);
       
       if (err.code === 'ECONNABORTED') {
-        setError('İş ilanları araması zaman aşımına uğradı. Lütfen daha sonra tekrar deneyiniz.');
+        setError('Job search timed out. Please try again later.');
       } else if (err.response) {
-        setError(`İş ilanları aranamadı: ${err.response.data?.error || 'Sunucu hatası'}`);
+        setError(`Could not search for jobs: ${err.response.data?.error || 'Server error'}`);
       } else if (err.request) {
-        setError('Sunucuya bağlanılamadı. Lütfen internet bağlantınızı kontrol ediniz.');
+        setError('Could not connect to server. Please check your internet connection.');
       } else {
-        setError('İş ilanları aranamadı. Lütfen daha sonra tekrar deneyiniz.');
+        setError('Could not search for jobs. Please try again later.');
       }
     } finally {
       setLoading(false);
@@ -325,11 +325,11 @@ const AnalysisResults = ({ analysis }) => {
             <AssessmentIcon color="primary" />,
             <Typography variant="body1">
               {getSafeString(processedAnalysis.summary, 
-                `Özgeçmişiniz ${getSafeArray(processedAnalysis.skills).join(', ') || 'çeşitli alanlar'}da deneyiminizi gösteriyor. ` + 
+                `Your resume ${getSafeArray(processedAnalysis.skills).join(', ') || 'covers various areas'} and showcases your experience. ` + 
                 (getSafeArray(processedAnalysis.strengths).length > 0 ? 
-                  `Güçlü yönleriniz: ${getSafeArray(processedAnalysis.strengths).join(', ')}. ` : '') +
+                  `Strong points: ${getSafeArray(processedAnalysis.strengths).join(', ')}. ` : '') +
                 (getSafeArray(processedAnalysis.recommendations).length > 0 ? 
-                  `Öneri: ${getSafeArray(processedAnalysis.recommendations)[0]}` : 'Daha spesifik başarılarınızı vurgulamanızı öneririz.'))}
+                  `Recommendation: ${getSafeArray(processedAnalysis.recommendations)[0]}` : 'We recommend highlighting specific achievements.')}
             </Typography>,
             '#60a5fa'
           )}
@@ -359,7 +359,7 @@ const AnalysisResults = ({ analysis }) => {
                   ))}
                 </Stack>
               ) : (
-                <Typography variant="body2">Özgeçmişinizde belirgin beceriler tespit edilemedi.</Typography>
+                <Typography variant="body2">No specific skills were identified in your resume.</Typography>
               )}
             </Box>,
             '#34d399'
@@ -385,7 +385,7 @@ const AnalysisResults = ({ analysis }) => {
                 </List>
               ) : (
                 <Typography variant="body2">
-                  Özgeçmişinizi geliştirmek için spesifik başarılarınızı ve sonuçlarınızı vurgulayın.
+                  Highlight your specific achievements and results to improve your resume.
                 </Typography>
               )}
             </Box>,
@@ -412,7 +412,7 @@ const AnalysisResults = ({ analysis }) => {
                 </List>
               ) : (
                 <Typography variant="body2">
-                  Özgeçmişinizi güçlendirmek için daha fazla nicel sonuç ve başarı ekleyin.
+                  Add more quantitative results and achievements to strengthen your resume.
                 </Typography>
               )}
             </Box>,
@@ -439,7 +439,7 @@ const AnalysisResults = ({ analysis }) => {
                 </List>
               ) : (
                 <Typography variant="body2">
-                  Özgeçmişiniz şu pozisyonlara uygun: Yazılım Geliştirici, Veri Analisti, Proje Yöneticisi
+                  Your resume matches these positions: Software Developer, Data Analyst, Project Manager
                 </Typography>
               )}
             </Box>,
@@ -483,7 +483,7 @@ const AnalysisResults = ({ analysis }) => {
               </Box>
             </Box>,
             <Typography variant="body2" align="center" sx={{ mt: 1 }}>
-              {getSafeString(processedAnalysis.scoreDetails, 'İyi bir özgeçmiş, ancak gelişim için bazı alanlar var.')}
+              {getSafeString(processedAnalysis.scoreDetails, 'Good resume, but some areas need improvement.')}
             </Typography>,
             '#93c5fd'
           )}
@@ -557,18 +557,18 @@ const AnalysisResults = ({ analysis }) => {
                 }}
                 dangerouslySetInnerHTML={{ 
                   __html: (() => {
-                    // Detaylı analiz verilerini işle
+                    // Process detailed analysis data
                     const rawData = processedAnalysis.insights || processedAnalysis.detailedAnalysis;
                     
-                    // Eğer veri JSON formatında ise, daha okunabilir hale getir
+                    // If data is JSON format, make it more readable
                     if (typeof rawData === 'string' && (rawData.startsWith('{') || rawData.startsWith('['))) {
                       try {
                         const parsedData = JSON.parse(rawData);
                         
-                        // Profesyonel profil
-                        let result = '<span class="section-title">Profesyonel Profil</span>';
+                        // Professional profile
+                        let result = '<span class="section-title">Professional Profile</span>';
                         
-                        // Profesyonel profil metnini biçimlendir - anahtar kelimeleri vurgula
+                        // Format professional profile text - highlight keywords
                         if (parsedData.professionalProfile) {
                           const highlightedProfile = parsedData.professionalProfile
                             .replace(/(experience|expertise|skills|knowledge|proficient|advanced|expert|years|degree|education|certified|qualification)/gi, 
@@ -578,14 +578,14 @@ const AnalysisResults = ({ analysis }) => {
                           
                           result += `<p>${highlightedProfile}</p>`;
                         } else {
-                          result += `<p>Özgeçmişinizden detaylı bir profesyonel profil oluşturulamamıştır.</p>`;
+                          result += `<p>A detailed professional profile could not be generated from your resume.</p>`;
                         }
                         
                         // Key Achievements
                         if (parsedData.keyAchievements && Array.isArray(parsedData.keyAchievements) && parsedData.keyAchievements.length > 0) {
-                          result += `<span class="section-title">Önemli Başarılar</span><ul>`;
+                          result += `<span class="section-title">Key Achievements</span><ul>`;
                           parsedData.keyAchievements.forEach(achievement => {
-                            // Sayısal değerleri vurgula
+                            // Highlight numerical values
                             const highlightedAchievement = achievement
                               .replace(/(\d+%|\d+\s*[a-zA-Z]+|increased|improved|reduced|saved|generated)/gi, 
                                 '<span class="achievement">$1</span>');
@@ -596,9 +596,9 @@ const AnalysisResults = ({ analysis }) => {
                         
                         // Industry Fit
                         if (parsedData.industryFit && Array.isArray(parsedData.industryFit) && parsedData.industryFit.length > 0) {
-                          result += `<span class="section-title">Sektör Uyumu</span><ul>`;
+                          result += `<span class="section-title">Industry Fit</span><ul>`;
                           parsedData.industryFit.forEach(industry => {
-                            // Sektör adını vurgula
+                            // Highlight industry name
                             const parts = industry.split(' - ');
                             if (parts.length > 1) {
                               result += `<li><span class="skill-tag">${parts[0]}</span> ${parts[1]}</li>`;
@@ -611,7 +611,7 @@ const AnalysisResults = ({ analysis }) => {
                         
                         // Recommended Job Titles
                         if (parsedData.recommendedJobTitles && Array.isArray(parsedData.recommendedJobTitles) && parsedData.recommendedJobTitles.length > 0) {
-                          result += `<span class="section-title">Önerilen İş Pozisyonları</span>`;
+                          result += `<span class="section-title">Recommended Job Positions</span>`;
                           result += `<p>`;
                           parsedData.recommendedJobTitles.forEach((title, index) => {
                             result += `<span class="skill-tag">${title}</span>${index < parsedData.recommendedJobTitles.length - 1 ? ' ' : ''}`;
@@ -621,9 +621,9 @@ const AnalysisResults = ({ analysis }) => {
                         
                         // Skill Gaps
                         if (parsedData.skillGaps && Array.isArray(parsedData.skillGaps) && parsedData.skillGaps.length > 0) {
-                          result += `<span class="section-title">Geliştirilmesi Gereken Beceriler</span><ul>`;
+                          result += `<span class="section-title">Skills to Develop</span><ul>`;
                           parsedData.skillGaps.forEach(gap => {
-                            // Geliştirilmesi gereken becerileri vurgula
+                            // Highlight skills to develop
                             const parts = gap.split(' - ');
                             if (parts.length > 1) {
                               result += `<li><span class="improvement">${parts[0]}</span> - ${parts[1]}</li>`;
@@ -635,95 +635,68 @@ const AnalysisResults = ({ analysis }) => {
                         }
                         
                         return result;
-                      } catch (e) {
-                        console.error('JSON parse hatası:', e);
-                        
-                        // JSON parse hatası durumunda daha iyi bir görünüm sağla
-                        try {
-                          // JSON formatını düzeltmeye çalış
-                          const cleanedJson = rawData
-                            .replace(/\\n/g, '<br/>')
-                            .replace(/\\"/g, '"')
-                            .replace(/\\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;');
-                          
-                          // JSON'u daha okunabilir hale getir
-                          const formattedJson = cleanedJson
-                            .replace(/{/g, '{<br/>&nbsp;&nbsp;')
-                            .replace(/}/g, '<br/>}')
-                            .replace(/,/g, ',<br/>&nbsp;&nbsp;')
-                            .replace(/"([^"]+)":/g, '<span class="highlight">"$1"</span>:')
-                            .replace(/: "([^"]+)"/g, ': "<span class="achievement">$1</span>"')
-                            .replace(/\[/g, '[<br/>&nbsp;&nbsp;')
-                            .replace(/\]/g, '<br/>]')
-                            .replace(/\],/g, '],<br/>&nbsp;&nbsp;');
-                          
-                          return `<span class="section-title">Detaylı Analiz</span>
-                                  <div style="background-color: rgba(0,0,0,0.2); padding: 12px; border-radius: 4px; margin-top: 8px;">
-                                    ${formattedJson}
-                                  </div>`;
-                        } catch (formatError) {
-                          console.error('JSON format hatası:', formatError);
-                          return `<span class="section-title">Detaylı Analiz</span>
-                                  <p>Analiz verileri gösterilemiyor. Format hatası oluştu.</p>
-                                  <pre style="background-color: rgba(0,0,0,0.2); padding: 8px; border-radius: 4px; overflow-x: auto; font-size: 0.8rem;">
-                                    ${rawData}
-                                  </pre>`;
-                        }
+                      } catch (formatError) {
+                        console.error('JSON format error:', formatError);
+                        return `<span class="section-title">Detailed Analysis</span>
+                                <p>Analysis data cannot be displayed. Format error occurred.</p>
+                                <pre style="background-color: rgba(0,0,0,0.2); padding: 8px; border-radius: 4px; overflow-x: auto; font-size: 0.8rem;">
+                                  ${rawData}
+                                </pre>`;
                       }
                     }
                     
-                    // Düz metin ise doğrudan göster ama biçimlendir
-                    // Eğer veri yoksa, boş bir string döndür
+                    // If plain text, display directly but format
+                    // If no data, return empty string
                     if (!rawData) {
-                      return "Özgeçmiş analizi yapılamadı. Lütfen daha sonra tekrar deneyin.";
+                      return "Resume analysis could not be performed. Please try again later.";
                     }
                     
-                    // Veri varsa, dinamik olarak oluştur
+                    // If data exists, create dynamically
                     let analysisText = "";
                     
-                    // Profesyonel profil
+                    // Professional profile
                     if (processedAnalysis.professionalProfile) {
                       analysisText += getSafeString(processedAnalysis.professionalProfile) + "\n\n";
                     }
                     
-                    // Beceriler
+                    // Skills
                     if (getSafeArray(processedAnalysis.skills).length > 0) {
-                      analysisText += `Becerileriniz: ${getSafeArray(processedAnalysis.skills).join(', ')}\n\n`;
+                      analysisText += `Your skills: ${getSafeArray(processedAnalysis.skills).join(', ')}\n\n`;
                     }
                     
-                    // Güçlü yönler
+                    // Strengths
                     if (getSafeArray(processedAnalysis.strengths).length > 0) {
-                      analysisText += `Güçlü yönleriniz: ${getSafeArray(processedAnalysis.strengths).join(', ')}\n\n`;
+                      analysisText += `Your strengths: ${getSafeArray(processedAnalysis.strengths).join(', ')}\n\n`;
                     }
                     
-                    // Zayıf yönler
+                    // Weaknesses
                     if (getSafeArray(processedAnalysis.weaknesses).length > 0) {
-                      analysisText += `Geliştirilebilecek alanlar: ${getSafeArray(processedAnalysis.weaknesses).join(', ')}\n\n`;
+                      analysisText += `Areas for improvement: ${getSafeArray(processedAnalysis.weaknesses).join(', ')}\n\n`;
                     }
                     
-                    // Öneriler
+                    // Recommendations
                     if (getSafeArray(processedAnalysis.recommendations).length > 0) {
-                      analysisText += `Öneriler:\n- ${getSafeArray(processedAnalysis.recommendations).join('\n- ')}\n\n`;
+                      analysisText += `Recommendations:\n- ${getSafeArray(processedAnalysis.recommendations).join('\n- ')}\n\n`;
                     }
                     
-                    // Sektör uyumu
+                    // Industry fit
                     if (processedAnalysis.industryFit) {
-                      analysisText += `Sektör uyumu: ${getSafeString(processedAnalysis.industryFit)}\n\n`;
+                      analysisText += `Industry fit: ${getSafeString(processedAnalysis.industryFit)}\n\n`;
                     }
                     
-                    // Önerilen iş pozisyonları
+                    // Recommended job positions
                     if (getSafeArray(processedAnalysis.recommendedJobTitles).length > 0) {
-                      analysisText += `Önerilen iş pozisyonları: ${getSafeArray(processedAnalysis.recommendedJobTitles).join(', ')}\n\n`;
+                      analysisText += `Recommended job positions: ${getSafeArray(processedAnalysis.recommendedJobTitles).join(', ')}\n\n`;
                     }
                     
-                    // Eksik beceriler
+                    // Skill gaps
                     if (getSafeArray(processedAnalysis.skillGaps).length > 0) {
-                      analysisText += `Geliştirilebilecek beceriler: ${getSafeArray(processedAnalysis.skillGaps).join(', ')}`;
+                      analysisText += `Skills to develop: ${getSafeArray(processedAnalysis.skillGaps).join(', ')}`;
                     }
                     
                     return analysisText || getSafeString(rawData);
                     
-                    // Metni paragraflar halinde biçimlendir ve anahtar kelimeleri vurgula
+                    // Format text into paragraphs and highlight keywords
                     return defaultText
                       .replace(/\n\n/g, '</p><p>')
                       .replace(/\n/g, '<br/>')
@@ -738,24 +711,24 @@ const AnalysisResults = ({ analysis }) => {
                 }}
               />
               <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                Pro Tip: {getSafeString(processedAnalysis.tips, 'Her iş başvurusunda özgeçmişinizi o pozisyona özel olarak düzenleyerek ilgili beceri ve deneyimlerinizi vurgulayın.')}
+                Pro Tip: {getSafeString(processedAnalysis.tips, 'Customize your resume for each job application by highlighting relevant skills and experience.')}
               </Typography>
             </Box>,
             '#93c5fd'
           )}
         </Grid>
 
-        {/* Presentation Options (Spinner kaldırıldı) */}
+        {/* Presentation Options */}
         <Grid item xs={12}>
           {renderGlowingCard(
             'Presentation',
             <DownloadIcon color="secondary" />,
             <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mt: 1 }}>
               <Button variant="contained" startIcon={<DownloadIcon />}>
-                PDF olarak indir
+                Download as PDF
               </Button>
               <Button variant="outlined" startIcon={<DownloadIcon />}>
-                DOCX olarak indir
+                Download as DOCX
               </Button>
             </Box>,
             '#f472b6'
@@ -791,7 +764,7 @@ const AnalysisResults = ({ analysis }) => {
           mb: 3 
         }}
       >
-        {loading ? 'İş İlanları Aranıyor...' : 'Eşleşen İşleri Bul'}
+        {loading ? 'Searching Jobs...' : 'Find Matching Jobs'}
       </Button>
 
       {error && (

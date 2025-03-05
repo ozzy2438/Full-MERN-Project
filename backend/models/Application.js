@@ -17,8 +17,8 @@ const applicationSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Başvuruldu', 'Değerlendiriliyor', 'Mülakat', 'Teklif', 'Kabul Edildi', 'Reddedildi', 'İptal'],
-    default: 'Başvuruldu'
+    enum: ['Applied', 'Under Review', 'Interview', 'Offer', 'Accepted', 'Rejected', 'Cancelled'],
+    default: 'Applied'
   },
   timeline: [{
     status: String,

@@ -9,164 +9,114 @@ import {
   Link, 
   Alert,
   InputAdornment,
-  IconButton
+  IconButton,
+  Container,
+  Avatar,
+  Grid
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { LockOutlinedIcon } from '@mui/icons-material';
+import { CircularProgress } from '@mui/material';
 
 const Login = () => {
-  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
-  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const { login, error: authError, clearError } = useAuth();
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      await login(formData.email, formData.password);
+      navigate('/');
+    } catch (err) {
+      setError(err.response?.data?.message || 'An error occurred during login. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
-    setError('');
   };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError('');
-    clearError();
-
-    const success = await login(formData.email, formData.password);
-    if (success) {
-      navigate('/');
-    }
-
-    setIsLoading(false);
-  };
-
-  // Show auth error if exists
-  useEffect(() => {
-    if (authError) {
-      setError(authError);
-    }
-  }, [authError]);
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        p: 2,
-        background: 'linear-gradient(45deg, #60a5fa 30%, #f472b6 90%)'
-      }}
-    >
-      <Paper
-        elevation={3}
+    <Container component="main" maxWidth="xs">
+      <Box
         sx={{
-          p: 4,
-          maxWidth: '400px',
-          width: '100%',
-          borderRadius: 2
+          marginTop: 8,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
         }}
       >
-        <Typography 
-          variant="h4" 
-          component="h1" 
-          gutterBottom 
-          align="center"
-          sx={{ 
-            fontWeight: 700,
-            background: 'linear-gradient(45deg, #60a5fa 30%, #f472b6 90%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            mb: 4
-          }}
-        >
-          Giriş Yap
+        <Avatar sx={{ m: 1, bgcolor: 'primary.main' }}>
+          <LockOutlinedIcon />
+        </Avatar>
+        <Typography component="h1" variant="h5">
+          Login
         </Typography>
-
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
-
-        <form onSubmit={handleSubmit}>
+        <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
           <TextField
+            margin="normal"
+            required
             fullWidth
-            label="Email"
+            id="email"
+            label="Email Address"
             name="email"
-            type="email"
+            autoComplete="email"
+            autoFocus
             value={formData.email}
             onChange={handleChange}
+          />
+          <TextField
             margin="normal"
             required
-            autoComplete="email"
-            sx={{ mb: 2 }}
-          />
-
-          <TextField
             fullWidth
-            label="Şifre"
             name="password"
-            type={showPassword ? 'text' : 'password'}
+            label="Password"
+            type="password"
+            id="password"
+            autoComplete="current-password"
             value={formData.password}
             onChange={handleChange}
-            margin="normal"
-            required
-            autoComplete="current-password"
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    onClick={() => setShowPassword(!showPassword)}
-                    edge="end"
-                  >
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-            sx={{ mb: 3 }}
           />
-
+          {error && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {error}
+            </Alert>
+          )}
           <Button
             type="submit"
             fullWidth
             variant="contained"
-            disabled={isLoading}
-            sx={{
-              py: 1.5,
-              textTransform: 'none',
-              fontWeight: 600,
-              fontSize: '1rem',
-              borderRadius: 2,
-              mb: 2
-            }}
+            sx={{ mt: 3, mb: 2 }}
+            disabled={loading}
           >
-            {isLoading ? 'Logging in...' : 'Login'}
+            {loading ? <CircularProgress size={24} /> : 'Login'}
           </Button>
-
-          <Typography align="center" color="text.secondary">
-            Don't have an account?{' '}
-            <Link
-              component={RouterLink}
-              to="/register"
-              underline="hover"
-              sx={{ fontWeight: 600 }}
-            >
-              Register
-            </Link>
-          </Typography>
-        </form>
-      </Paper>
-    </Box>
+          <Grid container justifyContent="flex-end">
+            <Grid item>
+              <Link component={RouterLink} to="/register" variant="body2">
+                Don't have an account? Sign up
+              </Link>
+            </Grid>
+          </Grid>
+        </Box>
+      </Box>
+    </Container>
   );
 };
 

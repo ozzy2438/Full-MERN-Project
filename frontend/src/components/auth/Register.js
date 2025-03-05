@@ -9,25 +9,31 @@ import {
   Link, 
   Alert,
   InputAdornment,
-  IconButton
+  IconButton,
+  Container,
+  Avatar,
+  Grid
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { PersonAddIcon } from '@mui/icons-material';
+import { CircularProgress } from '@mui/material';
 
 const Register = () => {
-  const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
     confirmPassword: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const { register, error: authError, clearError } = useAuth();
+  const { register } = useAuth();
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({
@@ -38,7 +44,7 @@ const Register = () => {
   };
 
   const validateForm = () => {
-    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.password || !formData.confirmPassword) {
       setError('Please fill in all fields');
       return false;
     }
@@ -64,179 +70,137 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    setLoading(true);
+    setError('');
+
     if (!validateForm()) {
+      setLoading(false);
       return;
     }
 
-    setIsLoading(true);
-    setError('');
-    clearError();
-
-    const success = await register(formData.name, formData.email, formData.password);
-    if (success) {
-      navigate('/');
+    try {
+      await register(formData);
+      navigate('/login');
+    } catch (err) {
+      setError(err.response?.data?.message || 'An error occurred during registration. Please try again.');
+    } finally {
+      setLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   // Show auth error if exists
   useEffect(() => {
-    if (authError) {
-      setError(authError);
+    if (error) {
+      setError(error);
     }
-  }, [authError]);
+  }, [error]);
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        p: 2,
-        background: 'linear-gradient(45deg, #60a5fa 30%, #f472b6 90%)'
-      }}
-    >
-      <Paper
-        elevation={3}
+    <Container component="main" maxWidth="xs">
+      <Box
         sx={{
-          p: 4,
-          maxWidth: '400px',
-          width: '100%',
-          borderRadius: 2
+          marginTop: 8,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
         }}
       >
-        <Typography 
-          variant="h4" 
-          component="h1" 
-          gutterBottom 
-          align="center"
-          sx={{ 
-            fontWeight: 700,
-            background: 'linear-gradient(45deg, #60a5fa 30%, #f472b6 90%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            mb: 4
-          }}
-        >
+        <Avatar sx={{ m: 1, bgcolor: 'primary.main' }}>
+          <PersonAddIcon />
+        </Avatar>
+        <Typography component="h1" variant="h5">
           Register
         </Typography>
-
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
-
-        <form onSubmit={handleSubmit}>
-          <TextField
-            fullWidth
-            label="Ad Soyad"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            margin="normal"
-            required
-            autoComplete="name"
-            sx={{ mb: 2 }}
-          />
-
-          <TextField
-            fullWidth
-            label="Email"
-            name="email"
-            type="email"
-            value={formData.email}
-            onChange={handleChange}
-            margin="normal"
-            required
-            autoComplete="email"
-            sx={{ mb: 2 }}
-          />
-
-          <TextField
-            fullWidth
-            label="Şifre"
-            name="password"
-            type={showPassword ? 'text' : 'password'}
-            value={formData.password}
-            onChange={handleChange}
-            margin="normal"
-            required
-            autoComplete="new-password"
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    onClick={() => setShowPassword(!showPassword)}
-                    edge="end"
-                  >
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-            sx={{ mb: 2 }}
-          />
-
-          <TextField
-            fullWidth
-            label="Şifre Tekrar"
-            name="confirmPassword"
-            type={showConfirmPassword ? 'text' : 'password'}
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            margin="normal"
-            required
-            autoComplete="new-password"
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    edge="end"
-                  >
-                    {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-            sx={{ mb: 3 }}
-          />
-
+        <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 3 }}>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                autoComplete="given-name"
+                name="firstName"
+                required
+                fullWidth
+                id="firstName"
+                label="First Name"
+                autoFocus
+                value={formData.firstName}
+                onChange={handleChange}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                required
+                fullWidth
+                id="lastName"
+                label="Last Name"
+                name="lastName"
+                autoComplete="family-name"
+                value={formData.lastName}
+                onChange={handleChange}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                required
+                fullWidth
+                id="email"
+                label="Email Address"
+                name="email"
+                autoComplete="email"
+                value={formData.email}
+                onChange={handleChange}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                required
+                fullWidth
+                name="password"
+                label="Password"
+                type="password"
+                id="password"
+                autoComplete="new-password"
+                value={formData.password}
+                onChange={handleChange}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                required
+                fullWidth
+                name="confirmPassword"
+                label="Confirm Password"
+                type="password"
+                id="confirmPassword"
+                autoComplete="new-password"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+              />
+            </Grid>
+          </Grid>
+          {error && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {error}
+            </Alert>
+          )}
           <Button
             type="submit"
             fullWidth
             variant="contained"
-            disabled={isLoading}
-            sx={{
-              py: 1.5,
-              textTransform: 'none',
-              fontWeight: 600,
-              fontSize: '1rem',
-              borderRadius: 2,
-              mb: 2
-            }}
+            sx={{ mt: 3, mb: 2 }}
+            disabled={loading}
           >
-            {isLoading ? 'Registering...' : 'Register'}
+            {loading ? <CircularProgress size={24} /> : 'Register'}
           </Button>
-
-          <Typography align="center" color="text.secondary">
-            Already have an account?{' '}
-            <Link
-              component={RouterLink}
-              to="/login"
-              underline="hover"
-              sx={{ fontWeight: 600 }}
-            >
-              Login
-            </Link>
-          </Typography>
-        </form>
-      </Paper>
-    </Box>
+          <Grid container justifyContent="flex-end">
+            <Grid item>
+              <Link component={RouterLink} to="/login" variant="body2">
+                Already have an account? Sign in
+              </Link>
+            </Grid>
+          </Grid>
+        </Box>
+      </Box>
+    </Container>
   );
 };
 

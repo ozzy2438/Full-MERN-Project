@@ -8,7 +8,7 @@ module.exports = function(req, res, next) {
   // Check if no token
   if (!token) {
     return res.status(401).json({ 
-      error: 'Yetkilendirme hatası, token bulunamadı' 
+      error: 'Authorization error, token not found' 
     });
   }
 
@@ -22,7 +22,7 @@ module.exports = function(req, res, next) {
   } catch (err) {
     console.error('Token verification error:', err);
     res.status(401).json({ 
-      error: 'Geçersiz token' 
+      error: 'Invalid token' 
     });
   }
 };

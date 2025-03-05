@@ -36,24 +36,24 @@ import {
 } from '@mui/icons-material';
 
 const APPLICATION_STATUSES = [
-  'Başvuruldu',
-  'Değerlendiriliyor',
-  'Mülakat',
-  'Teklif',
-  'Kabul Edildi',
-  'Reddedildi',
-  'İptal'
+  'Applied',
+  'Under Review',
+  'Interview',
+  'Offer',
+  'Accepted',
+  'Rejected',
+  'Cancelled'
 ];
 
 // English to Turkish status mapping for display purposes
 const STATUS_DISPLAY_MAP = {
-  'Başvuruldu': 'Applied',
-  'Değerlendiriliyor': 'Under Review',
-  'Mülakat': 'Interview',
-  'Teklif': 'Offer',
-  'Kabul Edildi': 'Accepted',
-  'Reddedildi': 'Rejected',
-  'İptal': 'Cancelled'
+  'Applied': 'Applied',
+  'Under Review': 'Under Review',
+  'Interview': 'Interview',
+  'Offer': 'Offer',
+  'Accepted': 'Accepted',
+  'Rejected': 'Rejected',
+  'Cancelled': 'Cancelled'
 };
 
 const ApplicationTracker = ({ userId }) => {
@@ -92,12 +92,12 @@ const ApplicationTracker = ({ userId }) => {
               location: 'Remote',
               applicationUrl: 'https://example.com/job/123'
             },
-            status: 'Başvuruldu',
+            status: 'Applied',
             appliedAt: new Date().toISOString(),
             lastUpdated: new Date().toISOString(),
             timeline: [
               {
-                status: 'Başvuruldu',
+                status: 'Applied',
                 notes: 'Initial application submitted',
                 date: new Date().toISOString()
               }
@@ -265,9 +265,9 @@ const ApplicationTracker = ({ userId }) => {
                     <Chip 
                       label={STATUS_DISPLAY_MAP[app.status] || app.status}
                       color={
-                        app.status === 'Kabul Edildi' ? 'success' :
-                        app.status === 'Reddedildi' ? 'error' :
-                        app.status === 'Mülakat' ? 'warning' : 'default'
+                        app.status === 'Accepted' ? 'success' :
+                        app.status === 'Rejected' ? 'error' :
+                        app.status === 'Interview' ? 'warning' : 'default'
                       }
                     />
                   </Stack>

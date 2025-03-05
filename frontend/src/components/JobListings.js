@@ -33,24 +33,24 @@ import {
 } from '@mui/icons-material';
 
 const APPLICATION_STATUSES = [
-  'Başvuruldu',
-  'Değerlendiriliyor',
-  'Mülakat',
-  'Teklif',
-  'Kabul Edildi',
-  'Reddedildi',
-  'İptal'
+  'Applied',
+  'Under Review',
+  'Interview',
+  'Offer',
+  'Accepted',
+  'Rejected',
+  'Cancelled'
 ];
 
 // English to Turkish status mapping for display purposes
 const STATUS_DISPLAY_MAP = {
-  'Başvuruldu': 'Applied',
-  'Değerlendiriliyor': 'Under Review',
-  'Mülakat': 'Interview',
-  'Teklif': 'Offer',
-  'Kabul Edildi': 'Accepted',
-  'Reddedildi': 'Rejected',
-  'İptal': 'Cancelled'
+  'Applied': 'Applied',
+  'Under Review': 'Under Review',
+  'Interview': 'Interview',
+  'Offer': 'Offer',
+  'Accepted': 'Accepted',
+  'Rejected': 'Rejected',
+  'Cancelled': 'Cancelled'
 };
 
 const JobListings = ({ jobs = [], onSearch, onApplicationSubmit }) => {
@@ -59,10 +59,10 @@ const JobListings = ({ jobs = [], onSearch, onApplicationSubmit }) => {
   const [selectedJob, setSelectedJob] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [notes, setNotes] = useState('');
-  const [status, setStatus] = useState('Başvuruldu');
+  const [status, setStatus] = useState('Applied');
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
-  // Kullanıcı pencereye geri döndüğünde başvuru diyaloğunu göster
+  // Show application dialog when user returns to window
   useEffect(() => {
     const handleWindowFocus = () => {
       const lastClickedJob = localStorage.getItem('lastClickedJob');
@@ -71,10 +71,10 @@ const JobListings = ({ jobs = [], onSearch, onApplicationSubmit }) => {
           const job = JSON.parse(lastClickedJob);
           setSelectedJob(job);
           setDialogOpen(true);
-          // İşlem tamamlandıktan sonra localStorage'ı temizle
+          // Clear localStorage after operation is complete
           localStorage.removeItem('lastClickedJob');
         } catch (error) {
-          console.error('Son tıklanan iş ilanı alınırken hata:', error);
+          console.error('Error getting last clicked job:', error);
         }
       }
     };
@@ -92,37 +92,37 @@ const JobListings = ({ jobs = [], onSearch, onApplicationSubmit }) => {
       if (!job.url) {
         setSnackbar({
           open: true,
-          message: 'Başvuru bağlantısı bulunamadı!',
+          message: 'Application link not found!',
           severity: 'error'
         });
         return;
       }
 
-      // URL'yi düzgün formatta hazırla
+      // Prepare URL in proper format
       let applicationUrl = job.url;
       
-      // URL'nin geçerli olup olmadığını kontrol et
+      // Check if URL is valid
       try {
-        // URL'yi doğru formata getir
+        // Format URL correctly
         if (!applicationUrl.startsWith('http://') && !applicationUrl.startsWith('https://')) {
           applicationUrl = 'https://' + applicationUrl;
         }
         
-        // URL'yi doğrula
+        // Validate URL
         new URL(applicationUrl);
       } catch (urlError) {
-        console.error('Geçersiz URL:', urlError);
+        console.error('Invalid URL:', urlError);
         setSnackbar({
           open: true,
-          message: 'Geçersiz başvuru bağlantısı!',
+          message: 'Invalid application link!',
           severity: 'error'
         });
         return;
       }
 
-      console.log('Açılacak URL:', applicationUrl);
+      console.log('URL to open:', applicationUrl);
       
-      // İş ilanı tıklamasını takip et
+      // Track job listing click
       try {
         await api.post('/jobs/trackClick', {
           jobId: job.id,
@@ -135,16 +135,16 @@ const JobListings = ({ jobs = [], onSearch, onApplicationSubmit }) => {
         console.error('Error tracking job click:', trackError);
       }
       
-      // Son tıklanan iş ilanını localStorage'a kaydet
+      // Save last clicked job to localStorage
       localStorage.setItem('lastClickedJob', JSON.stringify(job));
       
-      // Başvuru bağlantısını yeni sekmede aç
+      // Open application link in new tab
       window.open(applicationUrl, '_blank', 'noopener,noreferrer');
     } catch (error) {
-      console.error('Başvuru işlemi sırasında hata:', error);
+      console.error('Error during application:', error);
       setSnackbar({
         open: true,
-        message: 'Başvuru sırasında bir hata oluştu.',
+        message: 'An error occurred during application.',
         severity: 'error'
       });
     }
@@ -155,13 +155,13 @@ const JobListings = ({ jobs = [], onSearch, onApplicationSubmit }) => {
       if (!selectedJob?.id) {
         setSnackbar({
           open: true,
-          message: 'İş ilanı bilgisi eksik!',
+          message: 'Job listing information missing!',
           severity: 'error'
         });
         return;
       }
       
-      // İş başvuru durumunu güncelle
+      // Update job application status
       const updateResponse = await api.put('/jobs/updateStatus', {
         jobId: selectedJob.id,
         status,
@@ -170,12 +170,12 @@ const JobListings = ({ jobs = [], onSearch, onApplicationSubmit }) => {
       
       console.log('Status update response:', updateResponse.data);
       
-      // Uygulama verilerini hazırla (eski applications API'si için)
+      // Prepare application data (for old applications API)
       const applicationData = {
         job: {
-          title: selectedJob?.title || 'Başlık Belirtilmemiş',
-          company: selectedJob?.company || 'Şirket Belirtilmemiş',
-          location: selectedJob?.location || 'Konum Belirtilmemiş',
+          title: selectedJob?.title || 'Title Not Specified',
+          company: selectedJob?.company || 'Company Not Specified',
+          location: selectedJob?.location || 'Location Not Specified',
           description: selectedJob?.description || '',
           salary: selectedJob?.salary || '',
           employmentType: selectedJob?.employmentType || '',
@@ -185,37 +185,37 @@ const JobListings = ({ jobs = [], onSearch, onApplicationSubmit }) => {
         notes: notes ? [{ content: notes }] : []
       };
 
-      console.log('Gönderilen uygulama verileri:', applicationData);
+      console.log('Application data to send:', applicationData);
 
-      // Eski API'yi de çağır (geriye dönük uyumluluk için)
+      // Call old API too (for backward compatibility)
       try {
         const response = await api.post('/applications', applicationData);
-        console.log('Applications API yanıtı:', response.data);
+        console.log('Applications API response:', response.data);
         
-        // Callback fonksiyonu varsa çağır
+        // Call callback function if exists
         if (onApplicationSubmit) {
           onApplicationSubmit(response.data);
         }
       } catch (appError) {
-        console.error('Applications API hatası (önemli değil):', appError);
+        console.error('Applications API error (not critical):', appError);
       }
       
-      // Başarılı bildirim göster
+      // Show success notification
       setSnackbar({
         open: true,
-        message: 'Başvuru durumu başarıyla güncellendi!',
+        message: 'Application status updated successfully!',
         severity: 'success'
       });
 
-      // Dialog'u kapat
+      // Close dialog
       handleCloseDialog();
     } catch (error) {
-      console.error('Başvuru kaydedilirken hata oluştu:', error);
+      console.error('Error saving application:', error);
       
-      // Hata mesajını göster
+      // Show error message
       setSnackbar({
         open: true,
-        message: 'Başvuru kaydedilirken bir hata oluştu: ' + (error.response?.data?.error || error.message),
+        message: 'An error occurred while saving application: ' + (error.response?.data?.error || error.message),
         severity: 'error'
       });
     }
@@ -225,7 +225,7 @@ const JobListings = ({ jobs = [], onSearch, onApplicationSubmit }) => {
     setDialogOpen(false);
     setSelectedJob(null);
     setNotes('');
-    setStatus('Başvuruldu');
+    setStatus('Applied');
   };
 
   const handleCloseSnackbar = () => {
@@ -408,24 +408,24 @@ const JobListings = ({ jobs = [], onSearch, onApplicationSubmit }) => {
         maxWidth="sm" 
         fullWidth
       >
-        <DialogTitle>Başvuru Takibi</DialogTitle>
+        <DialogTitle>Track Application</DialogTitle>
         <DialogContent>
           <Box sx={{ mt: 2 }}>
             <Typography variant="body1" gutterBottom sx={{ mb: 2, color: 'primary.main', fontWeight: 'bold' }}>
-              {selectedJob?.title} pozisyonuna başvurdunuz mu? Başvurunuzu profilinizde takip etmek ister misiniz?
+              Have you applied for the {selectedJob?.title} position? Would you like to track your application in your profile?
             </Typography>
             
             <Typography variant="subtitle1" gutterBottom>
-              <strong>Pozisyon:</strong> {selectedJob?.title}
+              <strong>Position:</strong> {selectedJob?.title}
             </Typography>
             <Typography variant="subtitle1" gutterBottom>
-              <strong>Şirket:</strong> {selectedJob?.company}
+              <strong>Company:</strong> {selectedJob?.company}
             </Typography>
             
             <TextField
               select
               fullWidth
-              label="Başvuru Durumu"
+              label="Application Status"
               value={status}
               onChange={(e) => setStatus(e.target.value)}
               margin="normal"
@@ -439,26 +439,26 @@ const JobListings = ({ jobs = [], onSearch, onApplicationSubmit }) => {
 
             <TextField
               fullWidth
-              label="Notlar"
+              label="Notes"
               multiline
               rows={4}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               margin="normal"
-              placeholder="Başvurunuzla ilgili notlar ekleyin..."
+              placeholder="Add notes about your application..."
             />
           </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog} color="inherit">
-            İptal
+            Cancel
           </Button>
           <Button 
             onClick={handleSubmitApplication} 
             variant="contained" 
             color="primary"
           >
-            Başvuruyu Kaydet
+            Save Application
           </Button>
         </DialogActions>
       </Dialog>

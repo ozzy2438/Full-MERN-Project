@@ -124,7 +124,7 @@ router.post('/login', async (req, res) => {
     if (!isMatch) {
       console.log('Invalid password for user:', email);
       return res.status(400).json({
-        error: 'Geçersiz email veya şifre'
+        error: 'Invalid email or password'
       });
     }
 

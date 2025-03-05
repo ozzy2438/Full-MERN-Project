@@ -51,7 +51,7 @@ export const AuthProvider = ({ children }) => {
       setError(null);
       return true;
     } catch (err) {
-      setError(err.response?.data?.error || 'Giriş yapılırken bir hata oluştu');
+      setError(err.response?.data?.error || 'An error occurred during login');
       return false;
     }
   };
@@ -76,7 +76,7 @@ export const AuthProvider = ({ children }) => {
       setError(null);
       return true;
     } catch (err) {
-      setError(err.response?.data?.error || 'Kayıt işlemi sırasında bir hata oluştu');
+      setError(err.response?.data?.error || 'An error occurred during registration');
       return false;
     }
   };

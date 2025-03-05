@@ -10,7 +10,21 @@ import {
   CssBaseline,
   Alert,
   Snackbar,
-  CircularProgress
+  CircularProgress,
+  AppBar,
+  Toolbar,
+  IconButton,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Divider,
+  Badge,
+  Menu,
+  MenuItem,
+  Button
 } from '@mui/material';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import ResumeUpload from './components/ResumeUpload';
@@ -22,6 +36,8 @@ import Register from './components/auth/Register';
 import Header from './components/Header';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import api from './services/api';
+import { Link } from 'react-router-dom';
+import { DashboardIcon, WorkIcon, AssignmentIcon, CalendarMonthIcon, AnalyticsIcon, PersonIcon, MenuIcon, NotificationsIcon } from '@mui/icons-material';
 
 const theme = createTheme({
   palette: {
@@ -137,10 +153,10 @@ const MainContent = () => {
       console.log('Analysis data:', analysisRes.data);
 
       if (analysisRes.data) {
-        // Analiz verilerini zenginleştirme
+        // Enrich analysis data
         const enhancedAnalysis = {
           ...analysisRes.data,
-          // Eğer API'den gelen veriler eksikse, bazı temel veriler ekliyoruz
+          // If data from API is missing, we add some basic data
           skills: analysisRes.data.skills || [],
           jobTitles: analysisRes.data.jobTitles || analysisRes.data.recommendedJobs || [],
           improvements: analysisRes.data.improvements || analysisRes.data.areasOfImprovement || [],
@@ -151,7 +167,7 @@ const MainContent = () => {
         setAnalysisData(enhancedAnalysis);
         
         try {
-          // Analiz verilerine dayalı olarak iş aramak için anahtar kelimeleri oluştur
+          // Create keywords to search for jobs based on analysis data
           const keySkills = enhancedAnalysis.skills && enhancedAnalysis.skills.length > 0 
             ? enhancedAnalysis.skills.slice(0, 3).join(' ') 
             : '';
@@ -160,7 +176,7 @@ const MainContent = () => {
             ? enhancedAnalysis.jobTitles[0] 
             : '';
           
-          // Arama sorgusu oluştur
+          // Create search query
           const searchQuery = `${keyRoles} ${keySkills}`.trim();
           
           if (searchQuery) {
@@ -303,7 +319,26 @@ const MainContent = () => {
   );
 };
 
+const drawerItems = [
+  { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
+  { text: 'Job Search', icon: <WorkIcon />, path: '/jobs' },
+  { text: 'Applications', icon: <AssignmentIcon />, path: '/applications' },
+  { text: 'Calendar', icon: <CalendarMonthIcon />, path: '/calendar' },
+  { text: 'Resume Analysis', icon: <AnalyticsIcon />, path: '/resume-analysis' },
+  { text: 'Profile', icon: <PersonIcon />, path: '/profile' },
+];
+
 function App() {
+  const [open, setOpen] = useState(true);
+
+  const handleDrawerOpen = () => {
+    setOpen(true);
+  };
+
+  const handleDrawerClose = () => {
+    setOpen(false);
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
