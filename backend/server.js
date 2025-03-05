@@ -8,7 +8,7 @@ const fs = require('fs');
 
 const app = express();
 
-// CORS ayarları
+// CORS settings
 app.use(cors({
   origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -17,10 +17,10 @@ app.use(cors({
   optionsSuccessStatus: 200
 }));
 
-// CORS Pre-flight OPTIONS için özel middleware
+// Special middleware for CORS Pre-flight OPTIONS
 app.options('*', cors());
 
-// CORS hata ayıklama middleware'i
+// CORS debugging middleware
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', req.headers.origin);
   res.header('Access-Control-Allow-Credentials', true);
@@ -33,7 +33,7 @@ app.use((req, res, next) => {
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// Uploads klasörünü oluştur ve statik olarak sun
+// Create uploads folder and serve it statically
 const uploadsPath = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsPath)) {
   fs.mkdirSync(uploadsPath, { recursive: true });
@@ -53,7 +53,7 @@ app.use('/api/jobs', jobsRouter);
 app.use('/api/applications', applicationsRouter);
 app.use('/api/auth', authRouter);
 
-// MongoDB bağlantısı
+// MongoDB connection
 connectDB();
 
 // Error handling middleware

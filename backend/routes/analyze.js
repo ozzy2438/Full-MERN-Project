@@ -7,58 +7,58 @@ const axios = require('axios');
 
 const router = express.Router();
 
-// PDF'den metin çıkarma fonksiyonu
+// Function to extract text from PDF
 async function extractTextFromPDF(pdfPath) {
   try {
-    console.log(`PDF dosyasından metin çıkarılıyor: ${pdfPath}`);
+    console.log(`Extracting text from PDF file: ${pdfPath}`);
     
-    // PDF dosyasını kontrol et
+    // Check PDF file
     if (!fs.existsSync(pdfPath)) {
-      console.error(`PDF dosyası bulunamadı: ${pdfPath}`);
-      throw new Error(`PDF dosyası bulunamadı: ${pdfPath}`);
+      console.error(`PDF file not found: ${pdfPath}`);
+      throw new Error(`PDF file not found: ${pdfPath}`);
     }
     
-    // Dosya boyutunu kontrol et
+    // Check file size
     const stats = fs.statSync(pdfPath);
-    console.log(`PDF dosya boyutu: ${stats.size} bytes`);
+    console.log(`PDF file size: ${stats.size} bytes`);
     
     if (stats.size === 0) {
-      console.error('PDF dosyası boş');
-      throw new Error('PDF dosyası boş');
+      console.error('PDF file is empty');
+      throw new Error('PDF file is empty');
     }
     
-    // PDF'yi oku
+    // Read PDF
     const dataBuffer = fs.readFileSync(pdfPath);
     
-    // PDF parse seçenekleri
+    // PDF parse options
     const options = {
-      max: 10, // Maksimum sayfa sayısı
+      max: 10, // Maximum number of pages
       version: 'v2.0.550'
     };
     
-    // PDF'yi parse et
+    // Parse PDF
     const data = await pdfParse(dataBuffer, options);
     
-    console.log(`PDF'den çıkarılan metin uzunluğu: ${data.text.length}`);
-    console.log(`PDF'den çıkarılan metin örneği: ${data.text.substring(0, 100)}...`);
+    console.log(`Length of text extracted from PDF: ${data.text.length}`);
+    console.log(`Sample of text extracted from PDF: ${data.text.substring(0, 100)}...`);
     
-    // Metin boş mu kontrol et
+    // Check if text is empty
     if (!data.text || data.text.trim().length === 0) {
-      console.error('PDF dosyasından metin çıkarılamadı veya metin boş');
-      throw new Error('PDF dosyasından metin çıkarılamadı veya metin boş');
+      console.error('Text could not be extracted from PDF or text is empty');
+      throw new Error('Text could not be extracted from PDF or text is empty');
     }
     
     return data.text;
   } catch (error) {
-    console.error('PDF metin çıkarma hatası:', error);
+    console.error('PDF text extraction error:', error);
     
-    // Daha açıklayıcı hata mesajı
+    // More descriptive error message
     if (error.message.includes('file ended prematurely')) {
-      throw new Error('PDF dosyası bozuk veya eksik');
+      throw new Error('PDF file is corrupted or incomplete');
     } else if (error.message.includes('not a PDF file')) {
-      throw new Error('Dosya geçerli bir PDF formatında değil');
+      throw new Error('File is not a valid PDF format');
     } else {
-      throw new Error(`PDF'den metin çıkarılamadı: ${error.message}`);
+      throw new Error(`Could not extract text from PDF: ${error.message}`);
     }
   }
 }
@@ -68,42 +68,42 @@ router.post('/', async (req, res) => {
   try {
     const { filePath } = req.body;
 
-    console.log('Analiz isteği alındı, filePath:', filePath);
+    console.log('Analysis request received, filePath:', filePath);
 
     if (!filePath) {
-      console.error('Dosya yolu sağlanmadı');
+      console.error('No file path provided');
       return res.status(400).json({ success: false, error: 'File path is required' });
     }
 
-    // Dosya yolunu işle
+    // Process file path
     const uploadsDir = path.join(__dirname, '..', 'uploads');
-    console.log('Uploads dizini:', uploadsDir);
+    console.log('Uploads directory:', uploadsDir);
     
-    // filePath doğrudan dosya adı olarak kabul et
+    // Accept filePath directly as filename
     const fileName = filePath;
-    console.log('Kullanılacak dosya adı:', fileName);
+    console.log('Filename to be used:', fileName);
     
-    // Tam yolu oluştur
+    // Create full path
     const fullPath = path.join(uploadsDir, fileName);
-    console.log('İşlenen tam dosya yolu:', fullPath);
+    console.log('Full path being processed:', fullPath);
     
-    // Dosya var mı kontrol et
+    // Check if file exists
     if (!fs.existsSync(fullPath)) {
-      console.error(`Dosya bulunamadı: ${fullPath}`);
+      console.error(`File not found: ${fullPath}`);
       
-      // Debug: uploads dizinindeki dosyaları listele
+      // Debug: list files in uploads directory
       const files = fs.readdirSync(uploadsDir);
-      console.log('Uploads dizinindeki dosyalar:', files);
+      console.log('Files in uploads directory:', files);
       
       return res.status(404).json({ success: false, error: 'File not found' });
     }
 
-    // Dosyadan metin çıkar
-    console.log('Dosyadan metin çıkarılıyor...');
+    // Extract text from file
+    console.log('Extracting text from file...');
     const resumeText = await extractTextFromPDF(fullPath);
-    console.log(`Çıkarılan metin uzunluğu: ${resumeText.length} karakter`);
+    console.log(`Extracted text length: ${resumeText.length} characters`);
     
-    // Metin uzunluğunu kontrol et ve gerekirse kısalt
+    // Check text length and truncate if necessary
     const maxLength = 4000;
     const truncatedText = resumeText.length > maxLength 
       ? resumeText.substring(0, maxLength) 
@@ -112,13 +112,13 @@ router.post('/', async (req, res) => {
     console.log(`Truncated text length: ${truncatedText.length}`);
     console.log(`Resume text sample: \n${truncatedText.substring(0, 200)}...`);
     
-    // API çağrılarını dene
+    // Attempt to analyze resume with available APIs
     console.log('Attempting to analyze resume with available APIs');
     
     let analysisResult = null;
     let errors = [];
     
-    // DeepSeek API'yi dene
+    // Try DeepSeek API
     if (process.env.DEEPSEEK_REASONER_API) {
       try {
         console.log('Using DeepSeek API for analysis');
@@ -133,7 +133,7 @@ router.post('/', async (req, res) => {
       console.log('DeepSeek API key not configured, skipping');
     }
     
-    // OpenAI API'yi dene
+    // Try OpenAI API
     if (!analysisResult && process.env.OPENAI_API_KEY) {
       try {
         console.log('Falling back to OpenAI API');
@@ -148,7 +148,7 @@ router.post('/', async (req, res) => {
       console.log('OpenAI API key not configured, skipping');
     }
     
-    // Eğer hiçbir API çalışmazsa, hata döndür
+    // If no API works, return error
     if (!analysisResult) {
       console.log('All APIs failed, returning error');
       return res.status(500).json({ error: 'Failed to analyze resume with available APIs. Please try again later.' });
@@ -159,18 +159,18 @@ router.post('/', async (req, res) => {
   }
 });
 
-// OpenAI API çağrısı için yardımcı fonksiyon
+// OpenAI API call helper function
 async function callOpenAIAPI(resumeText) {
   console.log('Preparing OpenAI API call...');
   
-  // API anahtarını kontrol et
+  // Check API key
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     console.error('OpenAI API key is not configured');
     throw new Error('OpenAI API key is not configured');
   }
   
-  // Sistem mesajını hazırla
+  // Prepare system message
   const systemMessage = {
     role: "system",
     content: `You are an experienced HR professional and career consultant. Analyze the given resume thoroughly and provide a comprehensive response in English only. Your analysis should be detailed, insightful, and actionable.
