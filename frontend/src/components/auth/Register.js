@@ -17,7 +17,7 @@ import {
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { PersonAddIcon } from '@mui/icons-material';
+import PersonAdd from '@mui/icons-material/PersonAdd';
 import { CircularProgress } from '@mui/material';
 
 const Register = () => {
@@ -106,7 +106,7 @@ const Register = () => {
         }}
       >
         <Avatar sx={{ m: 1, bgcolor: 'primary.main' }}>
-          <PersonAddIcon />
+          <PersonAdd />
         </Avatar>
         <Typography component="h1" variant="h5">
           Register

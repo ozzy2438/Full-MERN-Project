@@ -17,7 +17,12 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CardActions
+  CardActions,
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from '@mui/material';
 import {
   Star as StarIcon,
@@ -44,6 +49,7 @@ const AnalysisResults = ({ analysis }) => {
   const [error, setError] = useState(null);
   const [nextPageToken, setNextPageToken] = useState(null);
   const [processedAnalysis, setProcessedAnalysis] = useState(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   // Process analysis data and make it safe to render
   useEffect(() => {
@@ -273,22 +279,22 @@ const AnalysisResults = ({ analysis }) => {
     );
   };
 
-  // Eğer analysis veya işlenmiş analysis yoksa, hiçbir şey render etme
+  // If analysis or processed analysis doesn't exist, don't render anything
   if (!analysis || !processedAnalysis) return null;
 
-  // Güvenli bir şekilde string değeri döndür
+  // Return a string value safely
   const getSafeString = (value, defaultValue = '') => {
     if (value === null || value === undefined) return defaultValue;
     if (typeof value === 'string') return value;
     try {
       return typeof value === 'object' ? JSON.stringify(value) : String(value);
     } catch (error) {
-      console.error('String dönüşümü sırasında hata:', error);
+      console.error('Error during string conversion:', error);
       return defaultValue;
     }
   };
 
-  // Güvenli bir şekilde array döndür
+  // Return an array safely
   const getSafeArray = (value, defaultValue = []) => {
     if (!value) return defaultValue;
     if (Array.isArray(value)) return value;
@@ -296,492 +302,547 @@ const AnalysisResults = ({ analysis }) => {
       return typeof value === 'object' && value !== null ? 
         Object.values(value).filter(Boolean) : defaultValue;
     } catch (error) {
-      console.error('Array dönüşümü sırasında hata:', error);
+      console.error('Error during array conversion:', error);
       return defaultValue;
     }
   };
 
   return (
-    <Box sx={{ mt: 4, width: '100%' }}>
-      <Typography 
-        variant="h4" 
-        component="h2" 
-        gutterBottom
-        sx={{
-          fontWeight: 700,
-          mb: 3,
-          color: 'primary.main',
-          textAlign: 'center'
-        }}
-      >
-        Resume Analysis
-      </Typography>
+    <>
+      <Box sx={{ mt: 4, width: '100%' }}>
+        <Typography 
+          variant="h4" 
+          component="h2" 
+          gutterBottom
+          sx={{
+            fontWeight: 700,
+            mb: 3,
+            color: 'primary.main',
+            textAlign: 'center'
+          }}
+        >
+          Resume Analysis
+        </Typography>
 
-      <Grid container spacing={3}>
-        {/* Executive Summary */}
-        <Grid item xs={12}>
-          {renderGlowingCard(
-            'Executive Summary',
-            <AssessmentIcon color="primary" />,
-            <Typography variant="body1">
-              {getSafeString(processedAnalysis.summary, 
-                `Your resume ${getSafeArray(processedAnalysis.skills).join(', ') || 'covers various areas'} and showcases your experience. ` + 
-                (getSafeArray(processedAnalysis.strengths).length > 0 ? 
-                  `Strong points: ${getSafeArray(processedAnalysis.strengths).join(', ')}. ` : '') +
-                (getSafeArray(processedAnalysis.recommendations).length > 0 ? 
-                  `Recommendation: ${getSafeArray(processedAnalysis.recommendations)[0]}` : 'We recommend highlighting specific achievements.')}
-            </Typography>,
-            '#60a5fa'
-          )}
-        </Grid>
+        <Grid container spacing={3}>
+          {/* Executive Summary */}
+          <Grid item xs={12}>
+            {renderGlowingCard(
+              'Executive Summary',
+              <AssessmentIcon color="primary" />,
+              <Typography variant="body1">
+                {getSafeString(processedAnalysis.summary, 
+                  `Your resume ${getSafeArray(processedAnalysis.skills).join(', ') || 'covers various areas'} and showcases your experience. ` + 
+                  (getSafeArray(processedAnalysis.strengths).length > 0 ? 
+                    `Strong points: ${getSafeArray(processedAnalysis.strengths).join(', ')}. ` : '') +
+                  (getSafeArray(processedAnalysis.recommendations).length > 0 ? 
+                    `Recommendation: ${getSafeArray(processedAnalysis.recommendations)[0]}` : 'We recommend highlighting specific achievements.')
+                )}
+              </Typography>,
+              '#60a5fa'
+            )}
+          </Grid>
 
-        {/* Skills Breakdown */}
-        <Grid item xs={12} md={6}>
-          {renderGlowingCard(
-            'Skills Breakdown',
-            <PsychologyIcon color="success" />,
-            <Box>
-              {getSafeArray(processedAnalysis.skills).length > 0 ? (
-                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ gap: 1 }}>
-                  {getSafeArray(processedAnalysis.skills).map((skill, index) => (
-                    <Chip 
-                      key={index} 
-                      label={getSafeString(skill)} 
+          {/* Skills Breakdown */}
+          <Grid item xs={12} md={6}>
+            {renderGlowingCard(
+              'Skills Breakdown',
+              <AssessmentIcon color="primary" />,
+              <Box>
+                {getSafeArray(processedAnalysis.skills).length > 0 ? (
+                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ gap: 1 }}>
+                    {getSafeArray(processedAnalysis.skills).map((skill, index) => (
+                      <Chip 
+                        key={index} 
+                        label={getSafeString(skill)} 
+                        color="primary" 
+                        variant="outlined" 
+                        size="small"
+                        sx={{ 
+                          borderRadius: '4px',
+                          backgroundColor: 'rgba(96, 165, 250, 0.1)',
+                          '&:hover': { backgroundColor: 'rgba(96, 165, 250, 0.2)' }
+                        }}
+                      />
+                    ))}
+                  </Stack>
+                ) : (
+                  <Typography variant="body2">No specific skills were identified in your resume.</Typography>
+                )}
+              </Box>,
+              '#93c5fd'
+            )}
+          </Grid>
+
+          {/* Recommendations */}
+          <Grid item xs={12} md={6}>
+            {renderGlowingCard(
+              'Recommendations',
+              <TrendingUpIcon color="warning" />,
+              <Box>
+                {getSafeArray(processedAnalysis.recommendations).length > 0 ? (
+                  <List dense disablePadding>
+                    {getSafeArray(processedAnalysis.recommendations).map((rec, index) => (
+                      <ListItem key={index} disablePadding sx={{ py: 0.5 }}>
+                        <ListItemText 
+                          primary={getSafeString(rec)}
+                          primaryTypographyProps={{ variant: 'body2' }}
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                ) : (
+                  <Typography variant="body2">
+                    Highlight your specific achievements and results to improve your resume.
+                  </Typography>
+                )}
+              </Box>,
+              '#fbbf24'
+            )}
+          </Grid>
+
+          {/* Areas of Improvement */}
+          <Grid item xs={12} md={6}>
+            {renderGlowingCard(
+              'Areas of Improvement',
+              <SchoolIcon color="error" />,
+              <Box>
+                {getSafeArray(processedAnalysis.improvements).length > 0 ? (
+                  <List dense disablePadding>
+                    {getSafeArray(processedAnalysis.improvements).map((improvement, index) => (
+                      <ListItem key={index} disablePadding sx={{ py: 0.5 }}>
+                        <ListItemText 
+                          primary={getSafeString(improvement)}
+                          primaryTypographyProps={{ variant: 'body2' }}
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                ) : (
+                  <Typography variant="body2">
+                    Add more quantitative results and achievements to strengthen your resume.
+                  </Typography>
+                )}
+              </Box>,
+              '#f87171'
+            )}
+          </Grid>
+
+          {/* Job Matching */}
+          <Grid item xs={12} md={6}>
+            {renderGlowingCard(
+              'Job Matching',
+              <WorkIcon color="info" />,
+              <Box>
+                {getSafeArray(processedAnalysis.jobTitles).length > 0 ? (
+                  <>
+                    <List dense disablePadding>
+                      {getSafeArray(processedAnalysis.jobTitles).map((job, index) => (
+                        <ListItem key={index} disablePadding sx={{ py: 0.5 }}>
+                          <ListItemText 
+                            primary={getSafeString(job)}
+                            primaryTypographyProps={{ variant: 'body2' }}
+                          />
+                        </ListItem>
+                      ))}
+                    </List>
+                    <Button 
+                      variant="contained" 
                       color="primary" 
-                      variant="outlined" 
-                      size="small"
-                      sx={{ 
-                        borderRadius: '4px',
-                        backgroundColor: 'rgba(96, 165, 250, 0.1)',
-                        '&:hover': { backgroundColor: 'rgba(96, 165, 250, 0.2)' }
-                      }}
-                    />
-                  ))}
-                </Stack>
-              ) : (
-                <Typography variant="body2">No specific skills were identified in your resume.</Typography>
-              )}
-            </Box>,
-            '#34d399'
-          )}
-        </Grid>
+                      fullWidth 
+                      sx={{ mt: 2 }}
+                      onClick={() => searchJobs(1)}
+                      disabled={loading}
+                    >
+                      {loading ? <CircularProgress size={24} /> : 'Find Matching Jobs'}
+                    </Button>
+                    {jobs.length > 0 && (
+                      <Box sx={{ mt: 2 }}>
+                        <Typography variant="subtitle2" gutterBottom>
+                          Found {jobs.length} matching positions
+                        </Typography>
+                        <List dense disablePadding>
+                          {jobs.slice(0, 3).map((job, index) => (
+                            <ListItem key={index} disablePadding sx={{ py: 0.5 }}>
+                              <ListItemText
+                                primary={job.title}
+                                secondary={job.company}
+                                primaryTypographyProps={{ variant: 'body2', fontWeight: 'medium' }}
+                                secondaryTypographyProps={{ variant: 'caption' }}
+                              />
+                              <Link 
+                                href={job.url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                sx={{ ml: 1, fontSize: '0.75rem' }}
+                              >
+                                View
+                              </Link>
+                            </ListItem>
+                          ))}
+                        </List>
+                        {jobs.length > 3 && (
+                          <Button 
+                            variant="text" 
+                            size="small" 
+                            sx={{ mt: 1 }}
+                            onClick={() => setDialogOpen('jobs')}
+                          >
+                            View All {jobs.length} Jobs
+                          </Button>
+                        )}
+                      </Box>
+                    )}
+                    {error && (
+                      <Alert severity="error" sx={{ mt: 2 }}>
+                        {error}
+                      </Alert>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <Typography variant="body2">
+                      Your resume matches these positions: Software Developer, Data Analyst, Project Manager
+                    </Typography>
+                    <Button 
+                      variant="contained" 
+                      color="primary" 
+                      fullWidth 
+                      sx={{ mt: 2 }}
+                      onClick={() => searchJobs(1)}
+                      disabled={loading}
+                    >
+                      {loading ? <CircularProgress size={24} /> : 'Find Matching Jobs'}
+                    </Button>
+                    {jobs.length > 0 && (
+                      <Box sx={{ mt: 2 }}>
+                        <Typography variant="subtitle2" gutterBottom>
+                          Found {jobs.length} matching positions
+                        </Typography>
+                        <List dense disablePadding>
+                          {jobs.slice(0, 3).map((job, index) => (
+                            <ListItem key={index} disablePadding sx={{ py: 0.5 }}>
+                              <ListItemText
+                                primary={job.title}
+                                secondary={job.company}
+                                primaryTypographyProps={{ variant: 'body2', fontWeight: 'medium' }}
+                                secondaryTypographyProps={{ variant: 'caption' }}
+                              />
+                              <Link 
+                                href={job.url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                sx={{ ml: 1, fontSize: '0.75rem' }}
+                              >
+                                View
+                              </Link>
+                            </ListItem>
+                          ))}
+                        </List>
+                        {jobs.length > 3 && (
+                          <Button 
+                            variant="text" 
+                            size="small" 
+                            sx={{ mt: 1 }}
+                            onClick={() => setDialogOpen('jobs')}
+                          >
+                            View All {jobs.length} Jobs
+                          </Button>
+                        )}
+                      </Box>
+                    )}
+                    {error && (
+                      <Alert severity="error" sx={{ mt: 2 }}>
+                        {error}
+                      </Alert>
+                    )}
+                  </>
+                )}
+              </Box>,
+              '#60a5fa'
+            )}
+          </Grid>
 
-        {/* Recommendations */}
-        <Grid item xs={12} md={6}>
-          {renderGlowingCard(
-            'Recommendations',
-            <TrendingUpIcon color="warning" />,
-            <Box>
-              {getSafeArray(processedAnalysis.recommendations).length > 0 ? (
-                <List dense disablePadding>
-                  {getSafeArray(processedAnalysis.recommendations).map((rec, index) => (
-                    <ListItem key={index} disablePadding sx={{ py: 0.5 }}>
-                      <ListItemText 
-                        primary={getSafeString(rec)}
-                        primaryTypographyProps={{ variant: 'body2' }}
-                      />
-                    </ListItem>
-                  ))}
-                </List>
-              ) : (
-                <Typography variant="body2">
-                  Highlight your specific achievements and results to improve your resume.
-                </Typography>
-              )}
-            </Box>,
-            '#fbbf24'
-          )}
-        </Grid>
-
-        {/* Areas of Improvement */}
-        <Grid item xs={12} md={6}>
-          {renderGlowingCard(
-            'Areas of Improvement',
-            <SchoolIcon color="error" />,
-            <Box>
-              {getSafeArray(processedAnalysis.improvements).length > 0 ? (
-                <List dense disablePadding>
-                  {getSafeArray(processedAnalysis.improvements).map((improvement, index) => (
-                    <ListItem key={index} disablePadding sx={{ py: 0.5 }}>
-                      <ListItemText 
-                        primary={getSafeString(improvement)}
-                        primaryTypographyProps={{ variant: 'body2' }}
-                      />
-                    </ListItem>
-                  ))}
-                </List>
-              ) : (
-                <Typography variant="body2">
-                  Add more quantitative results and achievements to strengthen your resume.
-                </Typography>
-              )}
-            </Box>,
-            '#f87171'
-          )}
-        </Grid>
-
-        {/* Job Matching */}
-        <Grid item xs={12} md={6}>
-          {renderGlowingCard(
-            'Job Matching',
-            <WorkIcon color="info" />,
-            <Box>
-              {getSafeArray(processedAnalysis.jobTitles).length > 0 ? (
-                <List dense disablePadding>
-                  {getSafeArray(processedAnalysis.jobTitles).map((job, index) => (
-                    <ListItem key={index} disablePadding sx={{ py: 0.5 }}>
-                      <ListItemText 
-                        primary={getSafeString(job)}
-                        primaryTypographyProps={{ variant: 'body2' }}
-                      />
-                    </ListItem>
-                  ))}
-                </List>
-              ) : (
-                <Typography variant="body2">
-                  Your resume matches these positions: Software Developer, Data Analyst, Project Manager
-                </Typography>
-              )}
-            </Box>,
-            '#60a5fa'
-          )}
-        </Grid>
-
-        {/* Resume Score */}
-        <Grid item xs={12} md={6}>
-          {renderGlowingCard(
-            'Resume Score',
-            <PieChartIcon color="secondary" />,
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
-              <Box sx={{ 
-                  width: 100, 
-                  height: 100, 
-                  borderRadius: '50%',
-                  background: `radial-gradient(circle at center, rgba(96, 165, 250, 0.2) 0%, rgba(96, 165, 250, 0.1) 50%, transparent 70%)`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  position: 'relative',
-                  '&::before': {
-                    content: '""',
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
+          {/* Resume Score */}
+          <Grid item xs={12} md={6}>
+            {renderGlowingCard(
+              'Resume Score',
+              <PieChartIcon color="secondary" />,
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
+                <Box sx={{ 
+                    width: 100, 
+                    height: 100, 
                     borderRadius: '50%',
-                    border: '10px solid rgba(96, 165, 250, 0.7)',
-                    borderRightColor: 'transparent',
-                    borderBottomColor: 'rgba(96, 165, 250, 0.3)',
-                    transform: 'rotate(-45deg)',
-                  }
-                }}
-              >
-                <Typography variant="h4" color="primary.light" sx={{ fontWeight: 700 }}>
-                  {getSafeString(processedAnalysis.score, '75%')}
-                </Typography>
-              </Box>
-            </Box>,
-            <Typography variant="body2" align="center" sx={{ mt: 1 }}>
-              {getSafeString(processedAnalysis.scoreDetails, 'Good resume, but some areas need improvement.')}
-            </Typography>,
-            '#93c5fd'
-          )}
-        </Grid>
-
-        {/* Tailored Insights */}
-        <Grid item xs={12}>
-          {renderGlowingCard(
-            'Detailed Insights',
-            <InsightsIcon color="info" />,
-            <Box>
-              <Typography 
-                variant="body1" 
-                sx={{ 
-                  whiteSpace: 'pre-wrap',
-                  wordBreak: 'break-word',
-                  fontSize: '1rem',
-                  lineHeight: 1.6,
-                  color: 'white',
-                  '& span.highlight': {
-                    color: '#f472b6',
-                    fontWeight: 500
-                  },
-                  '& .section-title': {
-                    color: '#60a5fa',
-                    fontWeight: 600,
-                    fontSize: '1.1rem',
-                    marginTop: '16px',
-                    marginBottom: '8px',
-                    display: 'block',
-                    borderBottom: '1px solid rgba(96, 165, 250, 0.3)',
-                    paddingBottom: '4px'
-                  },
-                  '& ul': {
-                    paddingLeft: '20px',
-                    marginTop: '8px',
-                    marginBottom: '12px',
-                    listStyleType: 'none'
-                  },
-                  '& li': {
-                    marginBottom: '8px',
+                    background: `radial-gradient(circle at center, rgba(96, 165, 250, 0.2) 0%, rgba(96, 165, 250, 0.1) 50%, transparent 70%)`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     position: 'relative',
-                    paddingLeft: '16px',
-                    '&:before': {
-                      content: '"•"',
-                      color: '#60a5fa',
+                    '&::before': {
+                      content: '""',
                       position: 'absolute',
+                      top: 0,
                       left: 0,
-                      fontWeight: 'bold'
+                      right: 0,
+                      bottom: 0,
+                      borderRadius: '50%',
+                      border: '10px solid rgba(96, 165, 250, 0.7)',
+                      borderRightColor: 'transparent',
+                      borderBottomColor: 'rgba(96, 165, 250, 0.3)',
+                      transform: 'rotate(-45deg)',
                     }
-                  },
-                  '& p': {
-                    marginBottom: '12px',
-                    textAlign: 'justify'
-                  },
-                  '& .skill-tag': {
-                    display: 'inline-block',
-                    backgroundColor: 'rgba(96, 165, 250, 0.15)',
-                    color: '#93c5fd',
-                    padding: '2px 8px',
-                    borderRadius: '4px',
-                    margin: '2px 4px 2px 0',
-                    fontSize: '0.9rem'
-                  },
-                  '& .achievement': {
-                    color: '#34d399'
-                  },
-                  '& .improvement': {
-                    color: '#f87171'
-                  }
-                }}
-                dangerouslySetInnerHTML={{ 
-                  __html: (() => {
-                    // Process detailed analysis data
-                    const rawData = processedAnalysis.insights || processedAnalysis.detailedAnalysis;
-                    
-                    // If data is JSON format, make it more readable
-                    if (typeof rawData === 'string' && (rawData.startsWith('{') || rawData.startsWith('['))) {
-                      try {
-                        const parsedData = JSON.parse(rawData);
-                        
-                        // Professional profile
-                        let result = '<span class="section-title">Professional Profile</span>';
-                        
-                        // Format professional profile text - highlight keywords
-                        if (parsedData.professionalProfile) {
-                          const highlightedProfile = parsedData.professionalProfile
-                            .replace(/(experience|expertise|skills|knowledge|proficient|advanced|expert|years|degree|education|certified|qualification)/gi, 
-                              '<span class="highlight">$1</span>')
-                            .replace(/(\d+%|\d+\s*[a-zA-Z]+|increased|improved|reduced|saved|generated)/gi, 
-                              '<span class="achievement">$1</span>');
+                  }}
+                >
+                  <Typography variant="h4" color="primary.light" sx={{ fontWeight: 700 }}>
+                    {getSafeString(processedAnalysis.score, '75%')}
+                  </Typography>
+                </Box>
+              </Box>,
+              <Typography variant="body2" align="center" sx={{ mt: 1 }}>
+                {getSafeString(processedAnalysis.scoreDetails, 'Good resume, but some areas need improvement.')}
+              </Typography>,
+              '#93c5fd'
+            )}
+          </Grid>
+
+          {/* Tailored Insights */}
+          <Grid item xs={12}>
+            {renderGlowingCard(
+              'Detailed Insights',
+              <InsightsIcon color="info" />,
+              <Box>
+                <Typography 
+                  variant="body1" 
+                  sx={{ 
+                    whiteSpace: 'pre-wrap',
+                    wordBreak: 'break-word',
+                    fontSize: '1rem',
+                    lineHeight: 1.6,
+                    color: 'white',
+                    '& span.highlight': {
+                      color: '#f472b6',
+                      fontWeight: 500
+                    },
+                    '& .section-title': {
+                      color: '#60a5fa',
+                      fontWeight: 600,
+                      fontSize: '1.1rem',
+                      marginTop: '16px',
+                      marginBottom: '8px',
+                      display: 'block',
+                      borderBottom: '1px solid rgba(96, 165, 250, 0.3)',
+                      paddingBottom: '4px'
+                    },
+                    '& ul': {
+                      paddingLeft: '20px',
+                      marginTop: '8px',
+                      marginBottom: '12px',
+                      listStyleType: 'none'
+                    },
+                    '& li': {
+                      marginBottom: '8px',
+                      position: 'relative',
+                      paddingLeft: '16px',
+                      '&:before': {
+                        content: '"•"',
+                        color: '#60a5fa',
+                        position: 'absolute',
+                        left: 0,
+                        fontWeight: 'bold'
+                      }
+                    },
+                    '& p': {
+                      marginBottom: '12px',
+                      textAlign: 'justify'
+                    },
+                    '& .skill-tag': {
+                      display: 'inline-block',
+                      backgroundColor: 'rgba(96, 165, 250, 0.15)',
+                      color: '#93c5fd',
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                      margin: '2px 4px 2px 0',
+                      fontSize: '0.9rem'
+                    },
+                    '& .achievement': {
+                      color: '#34d399'
+                    },
+                    '& .improvement': {
+                      color: '#f87171'
+                    }
+                  }}
+                  dangerouslySetInnerHTML={{ 
+                    __html: (() => {
+                      // Process detailed analysis data
+                      const rawData = processedAnalysis.insights || processedAnalysis.detailedAnalysis;
+                      
+                      // If data is JSON format, make it more readable
+                      if (typeof rawData === 'string' && (rawData.startsWith('{') || rawData.startsWith('['))) {
+                        try {
+                          const parsedData = JSON.parse(rawData);
                           
-                          result += `<p>${highlightedProfile}</p>`;
-                        } else {
-                          result += `<p>A detailed professional profile could not be generated from your resume.</p>`;
-                        }
-                        
-                        // Key Achievements
-                        if (parsedData.keyAchievements && Array.isArray(parsedData.keyAchievements) && parsedData.keyAchievements.length > 0) {
-                          result += `<span class="section-title">Key Achievements</span><ul>`;
-                          parsedData.keyAchievements.forEach(achievement => {
-                            // Highlight numerical values
-                            const highlightedAchievement = achievement
+                          // Professional profile
+                          let result = '<span class="section-title">Professional Profile</span>';
+                          
+                          // Format professional profile text - highlight keywords
+                          if (parsedData.professionalProfile) {
+                            const highlightedProfile = parsedData.professionalProfile
+                              .replace(/(experience|expertise|skills|knowledge|proficient|advanced|expert|years|degree|education|certified|qualification)/gi, 
+                                '<span class="highlight">$1</span>')
                               .replace(/(\d+%|\d+\s*[a-zA-Z]+|increased|improved|reduced|saved|generated)/gi, 
                                 '<span class="achievement">$1</span>');
-                            result += `<li>${highlightedAchievement}</li>`;
-                          });
-                          result += `</ul>`;
-                        }
-                        
-                        // Industry Fit
-                        if (parsedData.industryFit && Array.isArray(parsedData.industryFit) && parsedData.industryFit.length > 0) {
-                          result += `<span class="section-title">Industry Fit</span><ul>`;
-                          parsedData.industryFit.forEach(industry => {
-                            // Highlight industry name
-                            const parts = industry.split(' - ');
-                            if (parts.length > 1) {
-                              result += `<li><span class="skill-tag">${parts[0]}</span> ${parts[1]}</li>`;
-                            } else {
+                            
+                            result += `<p>${highlightedProfile}</p>`;
+                          } else {
+                            result += `<p>A detailed professional profile could not be generated from your resume.</p>`;
+                          }
+                          
+                          // Key Achievements
+                          if (parsedData.keyAchievements && Array.isArray(parsedData.keyAchievements) && parsedData.keyAchievements.length > 0) {
+                            result += `<span class="section-title">Key Achievements</span><ul>`;
+                            parsedData.keyAchievements.forEach(achievement => {
+                              // Highlight numerical values
+                              const highlightedAchievement = achievement
+                                .replace(/(\d+%|\d+\s*[a-zA-Z]+|increased|improved|reduced|saved|generated)/gi, 
+                                  '<span class="achievement">$1</span>');
+                              result += `<li>${highlightedAchievement}</li>`;
+                            });
+                            result += `</ul>`;
+                          }
+                          
+                          // Industry Fit
+                          if (parsedData.industryFit && Array.isArray(parsedData.industryFit) && parsedData.industryFit.length > 0) {
+                            result += `<span class="section-title">Industry Fit</span><ul>`;
+                            parsedData.industryFit.forEach(industry => {
                               result += `<li>${industry}</li>`;
-                            }
-                          });
-                          result += `</ul>`;
+                            });
+                            result += `</ul>`;
+                          }
+                          
+                          // Recommended Job Titles
+                          if (parsedData.recommendedJobTitles && Array.isArray(parsedData.recommendedJobTitles) && parsedData.recommendedJobTitles.length > 0) {
+                            result += `<span class="section-title">Recommended Job Titles</span><ul>`;
+                            parsedData.recommendedJobTitles.forEach(job => {
+                              result += `<li>${job}</li>`;
+                            });
+                            result += `</ul>`;
+                          }
+                          
+                          // Skill Gaps
+                          if (parsedData.skillGaps && Array.isArray(parsedData.skillGaps) && parsedData.skillGaps.length > 0) {
+                            result += `<span class="section-title">Skill Gaps</span><ul>`;
+                            parsedData.skillGaps.forEach(gap => {
+                              result += `<li>${gap}</li>`;
+                            });
+                            result += `</ul>`;
+                          }
+                          
+                          return result;
+                        } catch (error) {
+                          console.error('Error parsing detailed analysis data:', error);
+                          return 'Could not parse detailed analysis data.';
                         }
-                        
-                        // Recommended Job Titles
-                        if (parsedData.recommendedJobTitles && Array.isArray(parsedData.recommendedJobTitles) && parsedData.recommendedJobTitles.length > 0) {
-                          result += `<span class="section-title">Recommended Job Positions</span>`;
-                          result += `<p>`;
-                          parsedData.recommendedJobTitles.forEach((title, index) => {
-                            result += `<span class="skill-tag">${title}</span>${index < parsedData.recommendedJobTitles.length - 1 ? ' ' : ''}`;
-                          });
-                          result += `</p>`;
-                        }
-                        
-                        // Skill Gaps
-                        if (parsedData.skillGaps && Array.isArray(parsedData.skillGaps) && parsedData.skillGaps.length > 0) {
-                          result += `<span class="section-title">Skills to Develop</span><ul>`;
-                          parsedData.skillGaps.forEach(gap => {
-                            // Highlight skills to develop
-                            const parts = gap.split(' - ');
-                            if (parts.length > 1) {
-                              result += `<li><span class="improvement">${parts[0]}</span> - ${parts[1]}</li>`;
-                            } else {
-                              result += `<li><span class="improvement">${gap}</span></li>`;
-                            }
-                          });
-                          result += `</ul>`;
-                        }
-                        
-                        return result;
-                      } catch (formatError) {
-                        console.error('JSON format error:', formatError);
-                        return `<span class="section-title">Detailed Analysis</span>
-                                <p>Analysis data cannot be displayed. Format error occurred.</p>
-                                <pre style="background-color: rgba(0,0,0,0.2); padding: 8px; border-radius: 4px; overflow-x: auto; font-size: 0.8rem;">
-                                  ${rawData}
-                                </pre>`;
+                      } else {
+                        return rawData || 'No detailed analysis data available.';
                       }
-                    }
-                    
-                    // If plain text, display directly but format
-                    // If no data, return empty string
-                    if (!rawData) {
-                      return "Resume analysis could not be performed. Please try again later.";
-                    }
-                    
-                    // If data exists, create dynamically
-                    let analysisText = "";
-                    
-                    // Professional profile
-                    if (processedAnalysis.professionalProfile) {
-                      analysisText += getSafeString(processedAnalysis.professionalProfile) + "\n\n";
-                    }
-                    
-                    // Skills
-                    if (getSafeArray(processedAnalysis.skills).length > 0) {
-                      analysisText += `Your skills: ${getSafeArray(processedAnalysis.skills).join(', ')}\n\n`;
-                    }
-                    
-                    // Strengths
-                    if (getSafeArray(processedAnalysis.strengths).length > 0) {
-                      analysisText += `Your strengths: ${getSafeArray(processedAnalysis.strengths).join(', ')}\n\n`;
-                    }
-                    
-                    // Weaknesses
-                    if (getSafeArray(processedAnalysis.weaknesses).length > 0) {
-                      analysisText += `Areas for improvement: ${getSafeArray(processedAnalysis.weaknesses).join(', ')}\n\n`;
-                    }
-                    
-                    // Recommendations
-                    if (getSafeArray(processedAnalysis.recommendations).length > 0) {
-                      analysisText += `Recommendations:\n- ${getSafeArray(processedAnalysis.recommendations).join('\n- ')}\n\n`;
-                    }
-                    
-                    // Industry fit
-                    if (processedAnalysis.industryFit) {
-                      analysisText += `Industry fit: ${getSafeString(processedAnalysis.industryFit)}\n\n`;
-                    }
-                    
-                    // Recommended job positions
-                    if (getSafeArray(processedAnalysis.recommendedJobTitles).length > 0) {
-                      analysisText += `Recommended job positions: ${getSafeArray(processedAnalysis.recommendedJobTitles).join(', ')}\n\n`;
-                    }
-                    
-                    // Skill gaps
-                    if (getSafeArray(processedAnalysis.skillGaps).length > 0) {
-                      analysisText += `Skills to develop: ${getSafeArray(processedAnalysis.skillGaps).join(', ')}`;
-                    }
-                    
-                    return analysisText || getSafeString(rawData);
-                    
-                    // Format text into paragraphs and highlight keywords
-                    return defaultText
-                      .replace(/\n\n/g, '</p><p>')
-                      .replace(/\n/g, '<br/>')
-                      .replace(/^/, '<p>')
-                      .replace(/$/, '</p>')
-                      .replace(/([\w\s]+):/g, '<span class="highlight">$1:</span>')
-                      .replace(/(experience|expertise|skills|knowledge|proficient|advanced|expert|years|degree|education|certified|qualification)/gi, 
-                        '<span class="highlight">$1</span>')
-                      .replace(/(\d+%|\d+\s*[a-zA-Z]+|increased|improved|reduced|saved|generated)/gi, 
-                        '<span class="achievement">$1</span>');
-                  })()
-                }}
-              />
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                Pro Tip: {getSafeString(processedAnalysis.tips, 'Customize your resume for each job application by highlighting relevant skills and experience.')}
-              </Typography>
-            </Box>,
-            '#93c5fd'
-          )}
+                    })()
+                  }}
+                />
+              </Box>,
+              '#93c5fd'
+            )}
+          </Grid>
         </Grid>
+      </Box>
 
-        {/* Presentation Options */}
-        <Grid item xs={12}>
-          {renderGlowingCard(
-            'Presentation',
-            <DownloadIcon color="secondary" />,
-            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mt: 1 }}>
-              <Button variant="contained" startIcon={<DownloadIcon />}>
-                Download as PDF
-              </Button>
-              <Button variant="outlined" startIcon={<DownloadIcon />}>
-                Download as DOCX
-              </Button>
-            </Box>,
-            '#f472b6'
+      {/* Job Listings Dialog */}
+      <Dialog 
+        open={dialogOpen === 'jobs'} 
+        onClose={() => setDialogOpen(null)}
+        fullWidth
+        maxWidth="md"
+      >
+        <DialogTitle>
+          <Typography variant="h6">
+            Matching Job Positions
+          </Typography>
+        </DialogTitle>
+        <DialogContent>
+          {jobs.length > 0 ? (
+            <List>
+              {jobs.map((job, index) => (
+                <ListItem 
+                  key={index}
+                  divider={index < jobs.length - 1}
+                  alignItems="flex-start"
+                  sx={{ flexDirection: 'column', alignItems: 'flex-start', py: 2 }}
+                >
+                  <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <Typography variant="subtitle1" component="div" fontWeight="medium">
+                      {job.title}
+                    </Typography>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      component="a"
+                      href={job.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Apply
+                    </Button>
+                  </Box>
+                  
+                  <Typography variant="body2" color="text.secondary">
+                    {job.company} • {job.location || 'Remote/Various'}
+                  </Typography>
+                  
+                  {job.salary && (
+                    <Typography variant="body2" sx={{ mt: 1 }}>
+                      Salary: {job.salary}
+                    </Typography>
+                  )}
+                  
+                  {job.description && (
+                    <Typography variant="body2" sx={{ mt: 1 }}>
+                      {job.description.length > 250 
+                        ? `${job.description.substring(0, 250)}...` 
+                        : job.description}
+                    </Typography>
+                  )}
+                  
+                  {job.highlights && job.highlights.length > 0 && (
+                    <Box sx={{ mt: 1 }}>
+                      {job.highlights.map((highlight, i) => (
+                        <Typography key={i} variant="body2" sx={{ mt: 0.5 }}>
+                          • {highlight.items && highlight.items[0]}
+                        </Typography>
+                      ))}
+                    </Box>
+                  )}
+                </ListItem>
+              ))}
+            </List>
+          ) : (
+            <Typography variant="body1" sx={{ textAlign: 'center', py: 3 }}>
+              No job listings found. Try adjusting your search query.
+            </Typography>
           )}
-        </Grid>
-      </Grid>
-
-      <Divider sx={{ my: 4 }} />
-
-      <Typography 
-        variant="h5" 
-        component="h3" 
-        gutterBottom
-        sx={{
-          fontWeight: 700,
-          color: 'primary.main',
-          textAlign: 'center'
-        }}
-      >
-        Matching Jobs
-      </Typography>
-
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={() => searchJobs()}
-        disabled={loading}
-        startIcon={<SearchIcon />}
-        sx={{ 
-          mt: 2, 
-          display: 'block', 
-          mx: 'auto',
-          mb: 3 
-        }}
-      >
-        {loading ? 'Searching Jobs...' : 'Find Matching Jobs'}
-      </Button>
-
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
-        </Alert>
-      )}
-
-      {jobs.length > 0 && (
-        <JobListings 
-          jobs={jobs} 
-          loading={loading}
-          onLoadMore={() => nextPageToken && searchJobs(nextPageToken)}
-          hasMore={!!nextPageToken}
-        />
-      )}
-    </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDialogOpen(null)}>Close</Button>
+          {nextPageToken && (
+            <Button 
+              onClick={() => searchJobs(nextPageToken)} 
+              disabled={loading}
+              startIcon={loading ? <CircularProgress size={16} /> : null}
+            >
+              Load More
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };
 

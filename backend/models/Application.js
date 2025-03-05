@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 
 const applicationSchema = new mongoose.Schema({
   user: {
-    type: String, // ObjectId yerine String olarak değiştirdik
+    type: String, // Changed from ObjectId to String
     required: true
   },
   job: {

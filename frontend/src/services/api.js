@@ -89,7 +89,7 @@ api.interceptors.response.use(
         : data
       );
       
-      // Boş veya eksik veri kontrolü
+      // Check for empty or missing data
       if (data === null || data === undefined) {
         console.warn('⚠️ API response is empty (null/undefined):', response.config.url);
       } else if (
@@ -112,7 +112,7 @@ api.interceptors.response.use(
         method: error.config.method.toUpperCase()
       });
       
-      // Özel hata mesajları
+      // Custom error messages
       if (error.response.status === 500) {
         console.error('🔴 Server error! Check backend logs.');
       } else if (error.response.status === 404) {
@@ -129,13 +129,13 @@ api.interceptors.response.use(
       console.error('Error:', error.message);
     }
     
-    // Hata detaylarını geliştirici konsoluna yazdır
-    console.groupCollapsed('📋 Hata Detayları');
-    console.log('Hata Mesajı:', error.message);
-    console.log('İstek Yapılandırması:', error.config);
+    // Print error details to developer console
+    console.groupCollapsed('📋 Error Details');
+    console.log('Error Message:', error.message);
+    console.log('Request Configuration:', error.config);
     if (error.response) {
-      console.log('Yanıt Verileri:', error.response.data);
-      console.log('Yanıt Başlıkları:', error.response.headers);
+      console.log('Response Data:', error.response.data);
+      console.log('Response Headers:', error.response.headers);
     }
     console.groupEnd();
     
@@ -157,7 +157,7 @@ const validateResponse = (response, expectedKeys = []) => {
     throw new Error('API response is not an object');
   }
 
-  // Beklenen anahtarlar var mı kontrol et
+  // Check if expected keys exist
   if (expectedKeys.length > 0) {
     const missingKeys = expectedKeys.filter(key => !response.hasOwnProperty(key));
     if (missingKeys.length > 0) {

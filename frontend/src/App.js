@@ -30,6 +30,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import ResumeUpload from './components/ResumeUpload';
 import AnalysisResults from './components/AnalysisResults';
 import JobListings from './components/JobListings';
+import JobMatching from './components/JobMatching';
 import ApplicationTracker from './components/ApplicationTracker';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
@@ -37,7 +38,14 @@ import Header from './components/Header';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import api from './services/api';
 import { Link } from 'react-router-dom';
-import { DashboardIcon, WorkIcon, AssignmentIcon, CalendarMonthIcon, AnalyticsIcon, PersonIcon, MenuIcon, NotificationsIcon } from '@mui/icons-material';
+import Dashboard from '@mui/icons-material/Dashboard';
+import Work from '@mui/icons-material/Work';
+import Assignment from '@mui/icons-material/Assignment';
+import CalendarMonth from '@mui/icons-material/CalendarMonth';
+import Analytics from '@mui/icons-material/Analytics';
+import Person from '@mui/icons-material/Person';
+import MenuIcon from '@mui/icons-material/Menu';
+import Notifications from '@mui/icons-material/Notifications';
 
 const theme = createTheme({
   palette: {
@@ -320,12 +328,13 @@ const MainContent = () => {
 };
 
 const drawerItems = [
-  { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
-  { text: 'Job Search', icon: <WorkIcon />, path: '/jobs' },
-  { text: 'Applications', icon: <AssignmentIcon />, path: '/applications' },
-  { text: 'Calendar', icon: <CalendarMonthIcon />, path: '/calendar' },
-  { text: 'Resume Analysis', icon: <AnalyticsIcon />, path: '/resume-analysis' },
-  { text: 'Profile', icon: <PersonIcon />, path: '/profile' },
+  { text: 'Dashboard', icon: <Dashboard />, path: '/' },
+  { text: 'Job Search', icon: <Work />, path: '/jobs' },
+  { text: 'Job Matching', icon: <Work />, path: '/job-matching' },
+  { text: 'Applications', icon: <Assignment />, path: '/applications' },
+  { text: 'Calendar', icon: <CalendarMonth />, path: '/calendar' },
+  { text: 'Resume Analysis', icon: <Analytics />, path: '/resume-analysis' },
+  { text: 'Profile', icon: <Person />, path: '/profile' },
 ];
 
 function App() {
@@ -354,6 +363,14 @@ function App() {
                   <MainContent />
                 </ProtectedRoute>
               } 
+            />
+            <Route
+              path="/job-matching"
+              element={
+                <ProtectedRoute>
+                  <JobMatching />
+                </ProtectedRoute>
+              }
             />
           </Routes>
         </Router>

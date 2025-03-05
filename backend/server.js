@@ -46,8 +46,10 @@ const analyzeRouter = require('./routes/analyze');
 const jobsRouter = require('./routes/jobs');
 const applicationsRouter = require('./routes/applications');
 const authRouter = require('./routes/auth');
+const jobSearchRouter = require('./routes/jobSearch');
 
 app.use('/api/upload', uploadRouter);
+app.use('/api/jobSearch', jobSearchRouter);
 app.use('/api/analyze', analyzeRouter);
 app.use('/api/jobs', jobsRouter);
 app.use('/api/applications', applicationsRouter);

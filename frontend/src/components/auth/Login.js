@@ -17,7 +17,7 @@ import {
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { LockOutlinedIcon } from '@mui/icons-material';
+import LockOutlined from '@mui/icons-material/LockOutlined';
 import { CircularProgress } from '@mui/material';
 
 const Login = () => {
@@ -63,7 +63,7 @@ const Login = () => {
         }}
       >
         <Avatar sx={{ m: 1, bgcolor: 'primary.main' }}>
-          <LockOutlinedIcon />
+          <LockOutlined />
         </Avatar>
         <Typography component="h1" variant="h5">
           Login

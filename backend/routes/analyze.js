@@ -235,11 +235,11 @@ async function callOpenAIAPI(resumeText) {
     IMPORTANT: Be specific and detailed in your analysis. Include actual metrics, project names, technologies, and other concrete details from the resume whenever possible.`
   };
 
-  // API çağrısı için model seçimi
+  // API call model selection
   const model = process.env.USE_GPT4 === 'true' ? "gpt-4" : "gpt-3.5-turbo";
   console.log(`Using OpenAI model: ${model}`);
   
-  // Özgeçmiş metnini kısalt (çok uzunsa)
+  // Truncate resume text (if too long)
   const maxTextLength = 3000;
   const truncatedResumeText = resumeText.length > maxTextLength 
     ? resumeText.substring(0, maxTextLength) + "..." 
@@ -402,14 +402,14 @@ const processAPIResponse = (data) => {
       return data;
     }
     
-    // Veri bir string ise JSON olarak parse et
+    // If data is a string, parse as JSON
     if (typeof data === 'string') {
       try {
         return JSON.parse(data);
       } catch (parseError) {
         console.error('Error parsing API response as JSON:', parseError);
         
-        // JSON parse edilemezse, metin içindeki JSON'u bulmaya çalış
+        // If JSON parsing fails, try to find JSON in the text
         const jsonMatch = data.match(/```json\n([\s\S]*?)\n```/) || 
                          data.match(/{[\s\S]*}/);
         
@@ -442,11 +442,11 @@ const processAPIResponse = (data) => {
   }
 };
 
-// Basit metin analizi yapan fonksiyon
+// Function for simple text analysis
 function createBasicAnalysis(resumeText) {
   console.log('Creating basic analysis from resume text');
   
-  // Metin içinde anahtar kelimeleri ara
+  // Search for keywords in text
   const skills = extractSkills(resumeText);
   const education = extractEducation(resumeText);
   const experience = extractExperience(resumeText);
@@ -455,7 +455,7 @@ function createBasicAnalysis(resumeText) {
   const jobTitles = extractJobTitles(resumeText, skills);
   const skillGaps = generateSkillGaps(skills, jobTitles);
   
-  // Özgeçmiş puanını hesapla
+  // Calculate resume score
   const resumeScore = calculateResumeScore({
     skills,
     education,
@@ -464,7 +464,7 @@ function createBasicAnalysis(resumeText) {
     textLength: resumeText.length
   });
   
-  // Profesyonel profil oluştur
+  // Generate professional profile
   const professionalProfile = generateProfessionalProfile(resumeText, {
     skills,
     education,
@@ -472,7 +472,7 @@ function createBasicAnalysis(resumeText) {
     industries
   });
   
-  // Güçlü yönleri belirle
+  // Determine strengths
   const strengths = determineStrengths(resumeText, {
     skills,
     education,
@@ -480,7 +480,7 @@ function createBasicAnalysis(resumeText) {
     achievements
   });
   
-  // Zayıf yönleri belirle
+  // Determine weaknesses
   const weaknesses = determineWeaknesses(resumeText, {
     skills,
     education,
@@ -488,10 +488,10 @@ function createBasicAnalysis(resumeText) {
     achievements
   });
   
-  // Önerileri belirle
+  // Generate recommendations
   const recommendations = generateRecommendations(weaknesses);
   
-  // Basit bir analiz objesi oluştur
+  // Create a simple analysis object
   return {
     professionalProfile,
     keySkills: skills,
@@ -501,214 +501,214 @@ function createBasicAnalysis(resumeText) {
     recommendations,
     keyAchievements: achievements.length > 0 
       ? achievements.join(". ") 
-      : "Özgeçmişinizden önemli başarılar çıkarılamadı. Lütfen özgeçmişinize somut başarılarınızı ekleyin.",
+      : "No significant achievements could be extracted from your resume. Please add your concrete achievements to your resume.",
     industryFit: industries.length > 0 
-      ? `Özgeçmişiniz şu sektörlere uygun görünüyor: ${industries.join(", ")}` 
-      : "Özgeçmişiniz genel olarak profesyonel bir profil gösteriyor.",
+      ? `Your resume appears suitable for the following industries: ${industries.join(", ")}` 
+      : "Your resume shows a generally professional profile.",
     recommendedJobTitles: jobTitles,
     skillGaps
   };
 }
 
-// Özgeçmiş puanını hesaplayan fonksiyon
+// Function to calculate resume score
 function calculateResumeScore({ skills, education, experience, achievements, textLength }) {
-  let score = 50; // Başlangıç puanı
+  let score = 50; // Starting score
   
-  // Beceri sayısına göre puan ekle (max 15 puan)
+  // Add points based on number of skills (max 15 points)
   score += Math.min(skills.length * 2, 15);
   
-  // Eğitim durumuna göre puan ekle
+  // Add points based on education
   if (education) score += 10;
   
-  // Deneyim durumuna göre puan ekle
+  // Add points based on experience
   if (experience) score += 10;
   
-  // Başarı sayısına göre puan ekle (max 10 puan)
+  // Add points based on number of achievements (max 10 points)
   score += Math.min(achievements.length * 2, 10);
   
-  // Özgeçmiş uzunluğuna göre puan ekle (max 5 puan)
+  // Add points based on resume length (max 5 points)
   score += Math.min(Math.floor(textLength / 500), 5);
   
-  // Puanı 0-100 aralığında sınırla
+  // Limit score to 0-100 range
   return Math.max(0, Math.min(100, score));
 }
 
-// Profesyonel profil oluşturan fonksiyon
+// Function to generate professional profile
 function generateProfessionalProfile(text, { skills, education, experience, industries }) {
-  let profile = "Özgeçmişiniz analiz edildi. ";
+  let profile = "Your resume has been analyzed. ";
   
   if (skills.length > 0) {
-    profile += `${skills.slice(0, 3).join(", ")} gibi becerilere sahip bir profesyonel olarak görünüyorsunuz. `;
+    profile += `You appear to be a professional with skills such as ${skills.slice(0, 3).join(", ")}. `;
   }
   
   if (experience) {
-    profile += "Profesyonel iş deneyiminiz özgeçmişinizde belirtilmiş. ";
+    profile += "Your professional work experience is mentioned in your resume. ";
   }
   
   if (education) {
-    profile += "Eğitim geçmişiniz özgeçmişinizde yer alıyor. ";
+    profile += "Your educational background is included in your resume. ";
   }
   
   if (industries.length > 0) {
-    profile += `Özgeçmişiniz ${industries.join(", ")} sektörlerinde deneyim gösteriyor. `;
+    profile += `Your resume shows experience in the ${industries.join(", ")} industries. `;
   }
   
-  profile += "Daha detaylı bir analiz için özgeçmişinizi güncelleyerek tekrar deneyebilirsiniz.";
+  profile += "For a more detailed analysis, you can update your resume and try again.";
   
   return profile;
 }
 
-// Güçlü yönleri belirleyen fonksiyon
+// Function to determine strengths
 function determineStrengths(text, { skills, education, experience, achievements }) {
   const strengths = [];
   
   if (skills.length >= 5) {
-    strengths.push("Geniş beceri seti");
+    strengths.push("Broad skill set");
   }
   
   if (skills.length > 0) {
-    strengths.push(`${skills[0]} alanında uzmanlık`);
+    strengths.push(`Expertise in ${skills[0]}`);
   }
   
   if (education) {
-    strengths.push("Eğitim geçmişi");
+    strengths.push("Educational background");
   }
   
   if (experience) {
-    strengths.push("Profesyonel deneyim");
+    strengths.push("Professional experience");
   }
   
   if (achievements.length > 0) {
-    strengths.push("Kanıtlanmış başarılar");
+    strengths.push("Proven achievements");
   }
   
-  // Eğer hiç güçlü yön bulunamazsa, varsayılan değerler ekle
+  // If no strengths are found, add default values
   if (strengths.length === 0) {
     strengths.push(
-      "Özgeçmişinizde belirtilen beceriler",
-      "Profesyonel yaklaşım",
-      "Kendini ifade etme yeteneği"
+      "Skills mentioned in your resume",
+      "Professional approach",
+      "Self-expression ability"
     );
   }
   
   return strengths;
 }
 
-// Zayıf yönleri belirleyen fonksiyon
+// Function to determine weaknesses
 function determineWeaknesses(text, { skills, education, experience, achievements }) {
   const weaknesses = [];
   
   if (skills.length < 5) {
-    weaknesses.push("Sınırlı beceri seti");
+    weaknesses.push("Limited skill set");
   }
   
   if (!education) {
-    weaknesses.push("Eğitim bilgileri eksik veya yetersiz");
+    weaknesses.push("Missing or insufficient education information");
   }
   
   if (!experience) {
-    weaknesses.push("İş deneyimi eksik veya yetersiz");
+    weaknesses.push("Missing or insufficient work experience");
   }
   
   if (achievements.length === 0) {
-    weaknesses.push("Somut başarılar belirtilmemiş");
+    weaknesses.push("No concrete achievements mentioned");
   }
   
   if (text.length < 1000) {
-    weaknesses.push("Özgeçmiş içeriği kısa ve yetersiz");
+    weaknesses.push("Resume content is short and insufficient");
   }
   
-  // Eğer hiç zayıf yön bulunamazsa, varsayılan değerler ekle
+  // If no weaknesses are found, add default values
   if (weaknesses.length === 0) {
     weaknesses.push(
-      "Özgeçmişiniz daha fazla nicel sonuç içerebilir",
-      "Başarılarınızı daha detaylı anlatabilirsiniz",
-      "Sektöre özel anahtar kelimeler ekleyebilirsiniz"
+      "Your resume could include more quantitative results",
+      "Describe your skills in more detail",
+      "You could add industry-specific keywords"
     );
   }
   
   return weaknesses;
 }
 
-// Önerileri oluşturan fonksiyon
+// Function to generate recommendations
 function generateRecommendations(weaknesses) {
   const recommendationMap = {
-    "Sınırlı beceri seti": "Özgeçmişinize daha fazla teknik ve kişisel beceri ekleyin",
-    "Eğitim bilgileri eksik veya yetersiz": "Eğitim bilgilerinizi detaylandırın ve ilgili kursları ekleyin",
-    "İş deneyimi eksik veya yetersiz": "İş deneyimlerinizi kronolojik sırayla ve detaylı olarak belirtin",
-    "Somut başarılar belirtilmemiş": "Her iş deneyiminiz için ölçülebilir başarılar ekleyin",
-    "Özgeçmiş içeriği kısa ve yetersiz": "Özgeçmişinizi daha kapsamlı hale getirin"
+    "Limited skill set": "Add more technical and personal skills to your resume",
+    "Missing or insufficient education information": "Detail your education information and add relevant courses",
+    "Missing or insufficient work experience": "List your work experiences chronologically and in detail",
+    "No concrete achievements mentioned": "Add measurable achievements for each work experience",
+    "Resume content is short and insufficient": "Make your resume more comprehensive"
   };
   
-  // Zayıf yönlere göre öneriler oluştur
+  // Create recommendations based on weaknesses
   const recommendations = weaknesses.map(weakness => 
-    recommendationMap[weakness] || `${weakness} konusunda gelişim sağlayın`
+    recommendationMap[weakness] || `Improve on ${weakness}`
   );
   
-  // Eğer hiç öneri yoksa, varsayılan öneriler ekle
+  // If there are no recommendations, add default recommendations
   if (recommendations.length === 0) {
     return [
-      "Özgeçmişinize nicel başarılar ekleyin",
-      "Becerilerinizi daha detaylı açıklayın",
-      "Her iş deneyiminiz için somut sonuçlar belirtin"
+      "Add quantitative achievements to your resume",
+      "Describe your skills in more detail",
+      "Include concrete results for each work experience"
     ];
   }
   
   return recommendations;
 }
 
-// Metinden başarıları çıkaran yardımcı fonksiyon
+// Helper function to extract achievements from text
 function extractAchievements(text) {
-  // Başarı ile ilgili anahtar kelimeler
+  // Achievement-related keywords
   const achievementKeywords = [
     'achieved', 'improved', 'increased', 'decreased', 'reduced', 'saved',
     'developed', 'created', 'implemented', 'launched', 'led', 'managed',
     'award', 'recognition', 'certificate', 'honor', 'prize', 'scholarship',
-    'başarı', 'geliştirdi', 'artırdı', 'azalttı', 'tasarruf', 'ödül', 'sertifika'
+    'achievement', 'developed', 'increased', 'decreased', 'saved', 'award', 'certificate'
   ];
   
-  // Metni cümlelere böl
+  // Split text into sentences
   const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
   
-  // Başarı içeren cümleleri bul
+  // Find sentences containing achievements
   const achievementSentences = sentences.filter(sentence => 
     achievementKeywords.some(keyword => 
       sentence.toLowerCase().includes(keyword.toLowerCase())
     )
   );
   
-  // En fazla 5 başarı cümlesi döndür
+  // Return at most 5 achievement sentences
   return achievementSentences.slice(0, 5);
 }
 
-// Metinden sektörleri çıkaran yardımcı fonksiyon
+// Helper function to extract industries from text
 function extractIndustries(text) {
-  // Yaygın sektör anahtar kelimeleri
+  // Common industry keywords
   const industryKeywords = [
     'Technology', 'IT', 'Software', 'Healthcare', 'Finance', 'Banking',
     'Education', 'Manufacturing', 'Retail', 'E-commerce', 'Marketing',
     'Advertising', 'Media', 'Entertainment', 'Hospitality', 'Tourism',
     'Construction', 'Real Estate', 'Automotive', 'Aerospace', 'Energy',
     'Telecommunications', 'Consulting', 'Legal', 'Government', 'Non-profit',
-    'Teknoloji', 'Yazılım', 'Sağlık', 'Finans', 'Bankacılık', 'Eğitim',
-    'Üretim', 'Perakende', 'E-ticaret', 'Pazarlama', 'Reklam', 'Medya',
-    'Eğlence', 'Turizm', 'İnşaat', 'Otomotiv', 'Enerji', 'Telekomünikasyon',
-    'Danışmanlık', 'Hukuk', 'Kamu', 'Sivil Toplum'
+    'Technology', 'Software', 'Healthcare', 'Finance', 'Banking', 'Education',
+    'Manufacturing', 'Retail', 'E-commerce', 'Marketing', 'Advertising', 'Media',
+    'Entertainment', 'Tourism', 'Construction', 'Automotive', 'Energy', 'Telecommunications',
+    'Consulting', 'Legal', 'Government', 'Non-profit'
   ];
   
-  // Metni küçük harfe çevir ve her sektörü kontrol et
+  // Convert text to lowercase and check each industry
   const lowerText = text.toLowerCase();
   const foundIndustries = industryKeywords.filter(industry => 
     lowerText.includes(industry.toLowerCase())
   );
   
-  // En fazla 3 sektör döndür
+  // Return at most 3 industries
   return foundIndustries.slice(0, 3);
 }
 
-// Beceri açıklarını oluşturan fonksiyon
+// Function to generate skill gaps
 function generateSkillGaps(skills, jobTitles) {
-  // Yaygın iş unvanları için gerekli beceriler
+  // Required skills for common job titles
   const jobSkillsMap = {
     'Software Developer': ['JavaScript', 'Python', 'Java', 'C#', 'Git', 'Agile'],
     'Software Engineer': ['Data Structures', 'Algorithms', 'System Design', 'CI/CD'],
@@ -725,37 +725,37 @@ function generateSkillGaps(skills, jobTitles) {
     'Customer Service Representative': ['Communication', 'Problem Solving', 'Patience']
   };
   
-  // Mevcut becerileri küçük harfe çevir
+  // Convert existing skills to lowercase
   const lowerSkills = skills.map(skill => skill.toLowerCase());
   
-  // İş unvanlarına göre gerekli becerileri belirle
+  // Determine required skills based on job titles
   let requiredSkills = new Set();
   jobTitles.forEach(title => {
     const skillsForJob = jobSkillsMap[title] || [];
     skillsForJob.forEach(skill => requiredSkills.add(skill));
   });
   
-  // Eksik becerileri bul
+  // Find missing skills
   const missingSkills = Array.from(requiredSkills).filter(skill => 
     !lowerSkills.includes(skill.toLowerCase())
   );
   
-  // Eğer hiç eksik beceri bulunamazsa, varsayılan değerler döndür
+  // If no missing skills are found, return default values
   if (missingSkills.length === 0) {
     return [
-      "Sektöre özel sertifikalar",
-      "Liderlik deneyimi",
-      "Proje yönetimi becerileri"
+      "Industry-specific certifications",
+      "Leadership experience",
+      "Project management skills"
     ];
   }
   
-  // En fazla 5 eksik beceri döndür
+  // Return at most 5 missing skills
   return missingSkills.slice(0, 5);
 }
 
-// Metinden becerileri çıkaran yardımcı fonksiyon
+// Helper function to extract skills from text
 function extractSkills(text) {
-  // Yaygın beceri anahtar kelimeleri
+  // Common skill keywords
   const skillKeywords = [
     'JavaScript', 'Python', 'Java', 'C++', 'C#', 'PHP', 'Ruby', 'Swift', 'Kotlin',
     'React', 'Angular', 'Vue', 'Node.js', 'Express', 'Django', 'Flask', 'Spring',
@@ -770,31 +770,31 @@ function extractSkills(text) {
     'HR', 'Recruitment', 'Talent Management', 'Employee Relations', 'Training'
   ];
   
-  // Metni küçük harfe çevir ve her kelimeyi kontrol et
+  // Convert text to lowercase and check each word
   const lowerText = text.toLowerCase();
   const foundSkills = skillKeywords.filter(skill => 
     lowerText.includes(skill.toLowerCase())
   );
   
-  // Eğer hiç beceri bulunamazsa, genel beceriler döndür
+  // If no skills are found, return general skills
   if (foundSkills.length === 0) {
-    return ['İletişim', 'Problem Çözme', 'Takım Çalışması', 'Analitik Düşünme', 'Organizasyon'];
+    return ['Communication', 'Problem Solving', 'Teamwork', 'Analytical Thinking', 'Organization'];
   }
   
-  return foundSkills.slice(0, 10); // En fazla 10 beceri döndür
+  return foundSkills.slice(0, 10); // Return at most 10 skills
 }
 
-// Metinden eğitim bilgilerini çıkaran yardımcı fonksiyon
+// Helper function to extract education information from text
 function extractEducation(text) {
-  // Eğitim ile ilgili anahtar kelimeler
+  // Education-related keywords
   const educationKeywords = [
     'Bachelor', 'Master', 'PhD', 'Doctorate', 'BSc', 'MSc', 'BA', 'MA', 'MBA',
     'University', 'College', 'School', 'Institute', 'Academy',
     'Degree', 'Diploma', 'Certificate', 'Certification', 'Graduate', 'Undergraduate',
-    'Lisans', 'Yüksek Lisans', 'Doktora', 'Üniversite', 'Okul', 'Mezun'
+    'Bachelor', 'Master', 'PhD', 'University', 'School', 'Graduate'
   ];
   
-  // Metinde eğitim anahtar kelimeleri ara
+  // Search for education keywords in text
   const hasEducation = educationKeywords.some(keyword => 
     text.toLowerCase().includes(keyword.toLowerCase())
   );
@@ -802,17 +802,17 @@ function extractEducation(text) {
   return hasEducation;
 }
 
-// Metinden deneyim bilgilerini çıkaran yardımcı fonksiyon
+// Helper function to extract experience information from text
 function extractExperience(text) {
-  // Deneyim ile ilgili anahtar kelimeler
+  // Experience-related keywords
   const experienceKeywords = [
     'Experience', 'Work', 'Job', 'Career', 'Employment', 'Position', 'Role',
     'Manager', 'Director', 'Lead', 'Senior', 'Junior', 'Intern', 'Specialist',
     'Coordinator', 'Supervisor', 'Assistant', 'Associate', 'Consultant',
-    'Deneyim', 'İş', 'Kariyer', 'Pozisyon', 'Rol', 'Yönetici', 'Direktör', 'Lider'
+    'Experience', 'Work', 'Career', 'Position', 'Role', 'Manager', 'Director', 'Leader'
   ];
   
-  // Metinde deneyim anahtar kelimeleri ara
+  // Search for experience keywords in the text
   const hasExperience = experienceKeywords.some(keyword => 
     text.toLowerCase().includes(keyword.toLowerCase())
   );
@@ -820,9 +820,9 @@ function extractExperience(text) {
   return hasExperience;
 }
 
-// Metinden ve becerilerden iş unvanları çıkaran yardımcı fonksiyon
+// Helper function to extract job titles from text and skills
 function extractJobTitles(text, skills) {
-  // Yaygın iş unvanları
+  // Common job titles
   const commonTitles = [
     'Software Engineer', 'Software Developer', 'Web Developer', 'Frontend Developer',
     'Backend Developer', 'Full Stack Developer', 'Mobile Developer', 'iOS Developer',
@@ -834,15 +834,15 @@ function extractJobTitles(text, skills) {
     'HR Manager', 'Recruiter', 'Financial Analyst', 'Accountant', 'Content Writer'
   ];
   
-  // Beceriler ve metin içeriğine göre uygun iş unvanlarını belirle
+  // Determine appropriate job titles based on skills and text content
   let recommendedTitles = [];
   
-  // Programlama dilleri ve teknolojiler
+  // Programming languages and technologies
   const techSkills = ['JavaScript', 'Python', 'Java', 'C++', 'C#', 'PHP', 'Ruby', 'Swift', 'Kotlin'];
   const webSkills = ['React', 'Angular', 'Vue', 'HTML', 'CSS', 'Node.js', 'Express', 'Django', 'Flask'];
   const dataSkills = ['SQL', 'NoSQL', 'MongoDB', 'MySQL', 'PostgreSQL', 'Data Analysis', 'Machine Learning', 'AI'];
   
-  // Becerilere göre iş unvanları öner
+  // Suggest job titles based on skills
   const foundTechSkills = skills.filter(skill => techSkills.includes(skill));
   const foundWebSkills = skills.filter(skill => webSkills.includes(skill));
   const foundDataSkills = skills.filter(skill => dataSkills.includes(skill));
@@ -859,7 +859,7 @@ function extractJobTitles(text, skills) {
     recommendedTitles.push('Data Analyst', 'Database Administrator', 'Data Engineer');
   }
   
-  // Eğer hiç uygun unvan bulunamazsa, genel unvanlar öner
+  // If no suitable titles are found, suggest general titles
   if (recommendedTitles.length === 0) {
     recommendedTitles = [
       'Project Manager',
@@ -870,7 +870,7 @@ function extractJobTitles(text, skills) {
     ];
   }
   
-  // Tekrarlanan unvanları kaldır ve en fazla 5 unvan döndür
+  // Remove duplicate titles and return at most 5 titles
   return [...new Set(recommendedTitles)].slice(0, 5);
 }
 
