@@ -393,7 +393,7 @@ const AnalysisResults = ({ analysis }) => {
                   </List>
                 ) : (
                   <Typography variant="body2">
-                    Highlight your specific achievements and results to improve your resume.
+                    No recommendations available. Improve your resume to get personalized suggestions.
                   </Typography>
                 )}
               </Box>,
@@ -436,16 +436,25 @@ const AnalysisResults = ({ analysis }) => {
               <Box>
                 {getSafeArray(processedAnalysis.jobTitles).length > 0 ? (
                   <>
-                    <List dense disablePadding>
+                    <Typography variant="body2" sx={{ mb: 1 }}>
+                      Your resume is a strong match for:
+                    </Typography>
+                    <ul style={{ 
+                      listStyleType: 'disc', 
+                      paddingLeft: '1.5rem',
+                      marginTop: '0.5rem',
+                      marginBottom: '1rem'
+                    }}>
                       {getSafeArray(processedAnalysis.jobTitles).map((job, index) => (
-                        <ListItem key={index} disablePadding sx={{ py: 0.5 }}>
-                          <ListItemText 
-                            primary={getSafeString(job)}
-                            primaryTypographyProps={{ variant: 'body2' }}
-                          />
-                        </ListItem>
+                        <li key={index} style={{ 
+                          marginBottom: '0.5rem',
+                          fontSize: '1rem',
+                          lineHeight: '1.5'
+                        }}>
+                          {getSafeString(job)}
+                        </li>
                       ))}
-                    </List>
+                    </ul>
                     <Button 
                       variant="contained" 
                       color="primary" 

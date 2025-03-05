@@ -191,6 +191,13 @@ async function callOpenAIAPI(resumeText) {
         "Industry diversity - Can take on projects in different industries such as Y and Z"
       ],
       
+      "recommendations": [
+        // Provide 3 actionable recommendations with specific steps
+        "Enhance your resume by adding quantifiable achievements to each role",
+        "Obtain certification in X to strengthen your technical credentials",
+        "Develop a portfolio showcasing your projects with measurable outcomes"
+      ],
+      
       "personalSkills": [
         // At least 10 technical and personal skills with level (Beginner/Intermediate/Advanced/Expert) and specific experience
         "Python (Advanced) - NumPy, Pandas, Scikit-learn with 5+ years experience",

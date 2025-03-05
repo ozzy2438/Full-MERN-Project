@@ -25,6 +25,42 @@ const STATUS_COLORS = {
   'Cancelled': '#95a5a6'
 };
 
+// Function to render event content in the calendar
+const renderEventContent = (eventInfo) => {
+  const { event } = eventInfo;
+  const status = event.extendedProps.status || 'Applied';
+  const title = event.title || (event.extendedProps.job?.title || 'Job Application');
+  const company = event.extendedProps.job?.company || '';
+  
+  return (
+    <div className="event-content">
+      <div style={{ 
+        backgroundColor: STATUS_COLORS[status] || '#3498db',
+        color: 'white',
+        padding: '2px 4px',
+        borderRadius: '4px',
+        fontSize: '0.8rem',
+        marginBottom: '2px',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap'
+      }}>
+        <strong>{title}</strong>
+      </div>
+      {company && (
+        <div style={{
+          fontSize: '0.7rem',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap'
+        }}>
+          {company}
+        </div>
+      )}
+    </div>
+  );
+};
+
 // English to Turkish status mapping for display purposes
 const STATUS_DISPLAY_MAP = {
   'Applied': 'Applied',

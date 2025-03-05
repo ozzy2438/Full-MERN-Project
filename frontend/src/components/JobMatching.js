@@ -8,6 +8,9 @@ const JobMatching = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [notes, setNotes] = useState('');
   const { user } = useAuth();
 
   const handleSearch = async (e) => {
@@ -26,26 +29,49 @@ const JobMatching = () => {
     }
   };
 
-  const handleApply = async (job) => {
+  const handleApplyClick = (job) => {
+    setSelectedJob(job);
+    setNotes('');
+    setShowModal(true);
+  };
+
+  const handleModalClose = () => {
+    setShowModal(false);
+    setSelectedJob(null);
+  };
+
+  const handleApply = async () => {
+    if (!selectedJob) return;
+    
     try {
       await api.post('/applications', {
         user: user.id,
         job: {
-          title: job.title,
-          company: job.company,
-          location: job.location,
-          description: job.snippet,
-          applicationUrl: job.link
+          title: selectedJob.title,
+          company: selectedJob.company,
+          location: selectedJob.location,
+          description: selectedJob.snippet,
+          applicationUrl: selectedJob.link
         },
         status: 'Applied',
         timeline: [{
           status: 'Applied',
-          notes: 'Applied through CareerLens'
-        }]
+          notes: notes || 'Applied through CareerLens'
+        }],
+        notes: notes ? [{
+          content: notes,
+          createdAt: new Date().toISOString()
+        }] : []
       });
 
       // Show success message
       alert('Job application saved successfully!');
+      handleModalClose();
+      
+      // Open the job application URL in a new tab
+      if (selectedJob.link) {
+        window.open(selectedJob.link, '_blank');
+      }
     } catch (err) {
       console.error('Error saving application:', err);
       alert('Failed to save application. Please try again.');
@@ -93,7 +119,7 @@ const JobMatching = () => {
                 View Job
               </a>
               <button 
-                onClick={() => handleApply(job)} 
+                onClick={() => handleApplyClick(job)} 
                 className="btn btn-primary ml-2"
               >
                 Apply & Track
@@ -105,6 +131,42 @@ const JobMatching = () => {
 
       {jobs.length === 0 && !loading && !error && (
         <p className="no-results">No jobs found. Try different keywords or location.</p>
+      )}
+      
+      {/* Application Modal */}
+      {showModal && selectedJob && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <div className="modal-header">
+              <h3>Save Job Application</h3>
+              <button className="close-button" onClick={handleModalClose}>×</button>
+            </div>
+            <div className="modal-content">
+              <h4>{selectedJob.title}</h4>
+              <p className="company">{selectedJob.company}</p>
+              
+              <div className="form-group">
+                <label htmlFor="notes">Add notes about this application:</label>
+                <textarea
+                  id="notes"
+                  className="form-control"
+                  rows="4"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Add any notes about this application..."
+                ></textarea>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-outline-primary" onClick={handleModalClose}>
+                Cancel
+              </button>
+              <button className="btn btn-primary" onClick={handleApply}>
+                Save & Apply
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
