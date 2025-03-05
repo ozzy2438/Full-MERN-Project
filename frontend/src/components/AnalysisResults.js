@@ -42,8 +42,10 @@ import {
 } from '@mui/icons-material';
 import JobListings from './JobListings';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const AnalysisResults = ({ analysis }) => {
+  const { user } = useAuth();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -380,22 +382,41 @@ const AnalysisResults = ({ analysis }) => {
               'Recommendations',
               <TrendingUpIcon color="warning" />,
               <Box>
-                {getSafeArray(processedAnalysis.recommendations).length > 0 ? (
-                  <List dense disablePadding>
-                    {getSafeArray(processedAnalysis.recommendations).map((rec, index) => (
+                {/* Always show at least default recommendations */}
+                <List dense disablePadding>
+                  {getSafeArray(processedAnalysis.recommendations).length > 0 ? (
+                    getSafeArray(processedAnalysis.recommendations).map((rec, index) => (
                       <ListItem key={index} disablePadding sx={{ py: 0.5 }}>
                         <ListItemText 
                           primary={getSafeString(rec)}
                           primaryTypographyProps={{ variant: 'body2' }}
                         />
                       </ListItem>
-                    ))}
-                  </List>
-                ) : (
-                  <Typography variant="body2">
-                    No recommendations available. Improve your resume to get personalized suggestions.
-                  </Typography>
-                )}
+                    ))
+                  ) : (
+                    // Default recommendations if none are provided
+                    <>
+                      <ListItem disablePadding sx={{ py: 0.5 }}>
+                        <ListItemText 
+                          primary="Add quantitative achievements to your resume"
+                          primaryTypographyProps={{ variant: 'body2' }}
+                        />
+                      </ListItem>
+                      <ListItem disablePadding sx={{ py: 0.5 }}>
+                        <ListItemText 
+                          primary="Enhance your skills section with specific technologies and proficiency levels"
+                          primaryTypographyProps={{ variant: 'body2' }}
+                        />
+                      </ListItem>
+                      <ListItem disablePadding sx={{ py: 0.5 }}>
+                        <ListItemText 
+                          primary="Include relevant certifications and professional development activities"
+                          primaryTypographyProps={{ variant: 'body2' }}
+                        />
+                      </ListItem>
+                    </>
+                  )}
+                </List>
               </Box>,
               '#fbbf24'
             )}
@@ -793,12 +814,36 @@ const AnalysisResults = ({ analysis }) => {
                     <Button
                       variant="outlined"
                       size="small"
-                      component="a"
-                      href={job.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      onClick={() => {
+                        // Save job to applications
+                        api.post('/applications', {
+                          user: user?.id,
+                          job: {
+                            title: job.title,
+                            company: job.company,
+                            location: job.location || 'Not specified',
+                            description: job.description || '',
+                            applicationUrl: job.url
+                          },
+                          status: 'Applied',
+                          timeline: [{
+                            status: 'Applied',
+                            notes: 'Applied through CareerLens'
+                          }]
+                        })
+                        .then(() => {
+                          alert('Job application saved successfully!');
+                          // Open job URL in new tab
+                          window.open(job.url, '_blank');
+                        })
+                        .catch(err => {
+                          console.error('Error saving application:', err);
+                          // Still open the URL even if saving fails
+                          window.open(job.url, '_blank');
+                        });
+                      }}
                     >
-                      Apply
+                      Apply & Track
                     </Button>
                   </Box>
                   

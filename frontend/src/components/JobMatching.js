@@ -29,7 +29,7 @@ const JobMatching = () => {
     }
   };
 
-  const handleApplyClick = (job) => {
+  const handleJobClick = (job) => {
     setSelectedJob(job);
     setNotes('');
     setShowModal(true);
@@ -40,7 +40,7 @@ const JobMatching = () => {
     setSelectedJob(null);
   };
 
-  const handleApply = async () => {
+  const handleSaveAndApply = async () => {
     if (!selectedJob) return;
     
     try {
@@ -76,6 +76,17 @@ const JobMatching = () => {
       console.error('Error saving application:', err);
       alert('Failed to save application. Please try again.');
     }
+  };
+  
+  const handleViewJob = (url) => {
+    // Show save modal before redirecting
+    setSelectedJob({
+      title: 'Job Listing',
+      company: 'External Website',
+      link: url
+    });
+    setNotes('');
+    setShowModal(true);
   };
 
   return (
@@ -115,11 +126,14 @@ const JobMatching = () => {
             <p className="location">{job.location}</p>
             <div className="description" dangerouslySetInnerHTML={{ __html: job.snippet }} />
             <div className="job-actions">
-              <a href={job.link} target="_blank" rel="noopener noreferrer" className="btn btn-outline-primary">
-                View Job
-              </a>
               <button 
-                onClick={() => handleApplyClick(job)} 
+                onClick={() => handleViewJob(job.link)} 
+                className="btn btn-outline-primary"
+              >
+                View Job
+              </button>
+              <button 
+                onClick={() => handleJobClick(job)} 
                 className="btn btn-primary ml-2"
               >
                 Apply & Track
@@ -133,12 +147,12 @@ const JobMatching = () => {
         <p className="no-results">No jobs found. Try different keywords or location.</p>
       )}
       
-      {/* Application Modal */}
+      {/* Save Job Modal */}
       {showModal && selectedJob && (
         <div className="modal-overlay">
           <div className="modal">
             <div className="modal-header">
-              <h3>Save Job Application</h3>
+              <h3>Save Job Before Applying</h3>
               <button className="close-button" onClick={handleModalClose}>×</button>
             </div>
             <div className="modal-content">
@@ -146,22 +160,29 @@ const JobMatching = () => {
               <p className="company">{selectedJob.company}</p>
               
               <div className="form-group">
-                <label htmlFor="notes">Add notes about this application:</label>
+                <label htmlFor="notes">Add notes about this job:</label>
                 <textarea
                   id="notes"
                   className="form-control"
                   rows="4"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Add any notes about this application..."
+                  placeholder="Add any notes about this job application..."
                 ></textarea>
               </div>
+              
+              <p className="save-job-info">
+                Saving this job will add it to your application tracker and calendar.
+              </p>
             </div>
             <div className="modal-footer">
               <button className="btn btn-outline-primary" onClick={handleModalClose}>
                 Cancel
               </button>
-              <button className="btn btn-primary" onClick={handleApply}>
+              <button 
+                className="btn btn-primary" 
+                onClick={handleSaveAndApply}
+              >
                 Save & Apply
               </button>
             </div>

@@ -344,6 +344,16 @@ html {
   min-height: 100px;
 }
 
+.save-job-info {
+  margin-top: 1.5rem;
+  padding: 0.75rem;
+  background: rgba(96, 165, 250, 0.1);
+  border-radius: 8px;
+  border-left: 3px solid #60a5fa;
+  color: #cbd5e1;
+  font-size: 0.875rem;
+}
+
 .modal-footer {
   display: flex;
   justify-content: flex-end;

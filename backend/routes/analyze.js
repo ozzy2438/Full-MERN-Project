@@ -118,13 +118,17 @@ router.post('/', async (req, res) => {
     let analysisResult = null;
     let errors = [];
     
+    // Store results from both APIs
+    let deepseekResult = null;
+    let openaiResult = null;
+    
     // Try DeepSeek API
     if (process.env.DEEPSEEK_REASONER_API) {
       try {
         console.log('Using DeepSeek API for analysis');
-        analysisResult = await callDeepSeekAPI(truncatedText);
+        deepseekResult = await callDeepSeekAPI(truncatedText);
         console.log('DeepSeek API response received successfully');
-        return res.json(analysisResult);
+        analysisResult = deepseekResult;
       } catch (deepseekError) {
         console.error('DeepSeek API failed:', deepseekError.message);
         errors.push({ api: 'DeepSeek', error: deepseekError.message });
@@ -134,18 +138,28 @@ router.post('/', async (req, res) => {
     }
     
     // Try OpenAI API
-    if (!analysisResult && process.env.OPENAI_API_KEY) {
+    if (process.env.OPENAI_API_KEY) {
       try {
-        console.log('Falling back to OpenAI API');
-        analysisResult = await callOpenAIAPI(truncatedText);
+        console.log('Using OpenAI API for analysis');
+        openaiResult = await callOpenAIAPI(truncatedText);
         console.log('OpenAI API response received successfully');
-        return res.json(analysisResult);
+        
+        // If DeepSeek failed, use OpenAI result
+        if (!analysisResult) {
+          analysisResult = openaiResult;
+        }
       } catch (openaiError) {
         console.error('OpenAI API failed:', openaiError.message);
         errors.push({ api: 'OpenAI', error: openaiError.message });
       }
-    } else if (!process.env.OPENAI_API_KEY) {
+    } else {
       console.log('OpenAI API key not configured, skipping');
+    }
+    
+    // If both APIs returned results, merge them
+    if (deepseekResult && openaiResult) {
+      console.log('Merging results from both APIs');
+      analysisResult = mergeAPIResults(deepseekResult, openaiResult);
     }
     
     // If no API works, return error
@@ -153,6 +167,9 @@ router.post('/', async (req, res) => {
       console.log('All APIs failed, returning error');
       return res.status(500).json({ error: 'Failed to analyze resume with available APIs. Please try again later.' });
     }
+    
+    // Return the analysis result
+    return res.json(analysisResult);
   } catch (error) {
     console.error('Error in analyze endpoint:', error);
     return res.status(500).json({ error: error.message });
@@ -334,11 +351,18 @@ Respond in the following JSON format:
   "strengths": ["Strength 1", "Strength 2", ...],
   "weaknesses": ["Area to improve 1", "Area to improve 2", ...],
   "resumeScore": 85, // Score from 0-100
-  "recommendations": ["Recommendation 1", "Recommendation 2", ...],
-  "keyAchievements": "Candidate's key achievements (detailed paragraph)",
-  "industryFit": "Industries the candidate is well-suited for with detailed explanation",
+  "recommendations": ["Provide 3 actionable recommendations with specific steps", "Recommendation 2", "Recommendation 3"],
+  "keyAchievements": ["Achievement 1 with metrics", "Achievement 2 with metrics", ...],
+  "industryFit": ["Industry 1 - Rationale", "Industry 2 - Rationale", ...],
   "recommendedJobTitles": ["Recommended position 1", "Recommended position 2", ...],
-  "skillGaps": ["Missing skill 1", "Missing skill 2", ...]
+  "skillGaps": ["Missing skill 1", "Missing skill 2", ...],
+  "detailedAnalysis": {
+    "professionalProfile": "300-400 word detailed profile summary including experience, achievements, career goals, and unique value proposition",
+    "keyAchievements": ["Achievement 1 with metrics", "Achievement 2 with metrics", ...],
+    "industryFit": ["Industry 1 - Rationale", "Industry 2 - Rationale", ...],
+    "recommendedJobTitles": ["Job title 1 - Rationale", "Job title 2 - Rationale", ...],
+    "skillGaps": ["Skill gap 1 - How to improve", "Skill gap 2 - How to improve", ...]
+  }
 }
 
 IMPORTANT: Your response MUST be a valid JSON object. Do not include any text outside the JSON structure.
@@ -401,18 +425,88 @@ IMPORTANT: Be specific and detailed in your analysis. Include actual metrics, pr
   }
 }
 
+// Merge results from both APIs
+function mergeAPIResults(deepseekResult, openaiResult) {
+  console.log('Merging API results from DeepSeek and OpenAI');
+  
+  // Create a merged object with data from both APIs
+  const mergedAnalysis = {
+    // Prefer OpenAI summary if available, otherwise use DeepSeek
+    summary: openaiResult.summary || deepseekResult.summary || '',
+    
+    // Combine skills from both APIs, removing duplicates
+    skills: [...new Set([
+      ...(Array.isArray(openaiResult.personalSkills) ? openaiResult.personalSkills : []),
+      ...(Array.isArray(openaiResult.skills) ? openaiResult.skills : []),
+      ...(Array.isArray(deepseekResult.keySkills) ? deepseekResult.keySkills : [])
+    ])],
+    
+    // Combine strengths from both APIs
+    strengths: [...new Set([
+      ...(Array.isArray(openaiResult.strengths) ? openaiResult.strengths : []),
+      ...(Array.isArray(deepseekResult.strengths) ? deepseekResult.strengths : [])
+    ])],
+    
+    // Combine areas to improve from both APIs
+    areasToImprove: [...new Set([
+      ...(Array.isArray(openaiResult.areasToImprove) ? openaiResult.areasToImprove : []),
+      ...(Array.isArray(deepseekResult.weaknesses) ? deepseekResult.weaknesses : [])
+    ])],
+    
+    // Combine recommendations from both APIs
+    recommendations: [...new Set([
+      ...(Array.isArray(openaiResult.recommendations) ? openaiResult.recommendations : []),
+      ...(Array.isArray(deepseekResult.recommendations) ? deepseekResult.recommendations : [])
+    ])],
+    
+    // Combine job titles from both APIs
+    jobTitles: [...new Set([
+      ...(Array.isArray(openaiResult.recommendedJobTitles) ? openaiResult.recommendedJobTitles : []),
+      ...(Array.isArray(deepseekResult.recommendedJobTitles) ? deepseekResult.recommendedJobTitles : [])
+    ])],
+    
+    // Use resume score from either API
+    resumeScore: openaiResult.resumeScore || deepseekResult.resumeScore || 75,
+    
+    // Combine detailed analysis from both APIs
+    detailedAnalysis: {
+      professionalProfile: openaiResult.detailedAnalysis?.professionalProfile || 
+                          deepseekResult.professionalProfile || '',
+      
+      keyAchievements: Array.isArray(openaiResult.detailedAnalysis?.keyAchievements) ? 
+                      openaiResult.detailedAnalysis.keyAchievements : 
+                      (Array.isArray(deepseekResult.keyAchievements) ? 
+                       deepseekResult.keyAchievements : []),
+      
+      industryFit: Array.isArray(openaiResult.detailedAnalysis?.industryFit) ? 
+                  openaiResult.detailedAnalysis.industryFit : 
+                  (Array.isArray(deepseekResult.industryFit) ? 
+                   deepseekResult.industryFit : []),
+      
+      recommendedJobTitles: Array.isArray(openaiResult.detailedAnalysis?.recommendedJobTitles) ? 
+                           openaiResult.detailedAnalysis.recommendedJobTitles : 
+                           (Array.isArray(deepseekResult.recommendedJobTitles) ? 
+                            deepseekResult.recommendedJobTitles : []),
+      
+      skillGaps: Array.isArray(openaiResult.detailedAnalysis?.skillGaps) ? 
+                openaiResult.detailedAnalysis.skillGaps : 
+                (Array.isArray(deepseekResult.skillGaps) ? 
+                 deepseekResult.skillGaps : [])
+    }
+  };
+  
+  console.log('Merged analysis created successfully');
+  return mergedAnalysis;
+}
+
 // API yanıtını işle
 const processAPIResponse = (data) => {
   try {
-    // Veri zaten bir obje ise doğrudan kullan
-    if (typeof data === 'object' && data !== null) {
-      return data;
-    }
-    
-    // If data is a string, parse as JSON
+    // Parse data if it's a string
+    let parsedData;
     if (typeof data === 'string') {
       try {
-        return JSON.parse(data);
+        parsedData = JSON.parse(data);
       } catch (parseError) {
         console.error('Error parsing API response as JSON:', parseError);
         
@@ -422,29 +516,75 @@ const processAPIResponse = (data) => {
         
         if (jsonMatch) {
           try {
-            return JSON.parse(jsonMatch[1] || jsonMatch[0]);
+            parsedData = JSON.parse(jsonMatch[1] || jsonMatch[0]);
           } catch (nestedParseError) {
             console.error('Error parsing extracted JSON:', nestedParseError);
+            throw new Error('Failed to parse API response');
           }
+        } else {
+          throw new Error('No JSON found in API response');
         }
       }
+    } else if (typeof data === 'object' && data !== null) {
+      parsedData = data;
+    } else {
+      throw new Error('Invalid API response format');
     }
     
-    // Hiçbir şekilde parse edilemezse, basit bir obje döndür
-    console.warn('Could not parse API response, returning simplified object');
-    return {
-      professionalProfile: typeof data === 'string' ? data : 'Could not analyze resume',
-      keySkills: [],
-      strengths: [],
-      weaknesses: [],
-      recommendedJobTitles: [],
-      resumeScore: 50
+    // Create a standardized response format
+    const standardizedResponse = {
+      summary: parsedData.summary || '',
+      strengths: Array.isArray(parsedData.strengths) ? parsedData.strengths : [],
+      areasToImprove: Array.isArray(parsedData.areasToImprove) ? parsedData.areasToImprove : 
+                     Array.isArray(parsedData.weaknesses) ? parsedData.weaknesses : [],
+      recommendations: Array.isArray(parsedData.recommendations) ? parsedData.recommendations : [],
+      skills: Array.isArray(parsedData.personalSkills) ? parsedData.personalSkills : 
+             Array.isArray(parsedData.keySkills) ? parsedData.keySkills : [],
+      resumeScore: parsedData.resumeScore || 75,
+      jobTitles: Array.isArray(parsedData.recommendedJobTitles) ? parsedData.recommendedJobTitles : [],
+      
+      // Handle detailed analysis
+      detailedAnalysis: parsedData.detailedAnalysis || {}
     };
+    
+    // If detailedAnalysis is missing but we have professionalProfile, create it
+    if (!parsedData.detailedAnalysis && parsedData.professionalProfile) {
+      standardizedResponse.detailedAnalysis = {
+        professionalProfile: parsedData.professionalProfile,
+        keyAchievements: Array.isArray(parsedData.keyAchievements) ? parsedData.keyAchievements : 
+                        typeof parsedData.keyAchievements === 'string' ? [parsedData.keyAchievements] : [],
+        industryFit: Array.isArray(parsedData.industryFit) ? parsedData.industryFit : 
+                    typeof parsedData.industryFit === 'string' ? [parsedData.industryFit] : [],
+        recommendedJobTitles: Array.isArray(parsedData.recommendedJobTitles) ? parsedData.recommendedJobTitles : [],
+        skillGaps: Array.isArray(parsedData.skillGaps) ? parsedData.skillGaps : []
+      };
+    }
+    
+    console.log('Standardized response created successfully');
+    return standardizedResponse;
   } catch (error) {
     console.error('Error processing API response:', error);
+    
+    // Return a fallback response
     return {
-      error: 'Failed to process API response',
-      message: error.message
+      summary: 'Could not analyze resume properly. Please try again.',
+      strengths: ['Technical skills', 'Professional experience'],
+      areasToImprove: ['Add more quantifiable achievements', 'Enhance skill descriptions'],
+      recommendations: [
+        'Add quantitative achievements to your resume',
+        'Describe your skills in more detail',
+        'Include concrete results for each work experience'
+      ],
+      skills: ['Communication', 'Problem Solving', 'Teamwork', 'Analytical Thinking', 'Organization'],
+      resumeScore: 50,
+      jobTitles: ['Professional', 'Specialist', 'Analyst'],
+      detailedAnalysis: {
+        professionalProfile: 'Could not generate a detailed profile. Please try again with a more complete resume.',
+        keyAchievements: [],
+        industryFit: [],
+        recommendedJobTitles: [],
+        skillGaps: []
+      }
     };
   }
 };
