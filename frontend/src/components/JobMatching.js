@@ -121,10 +121,25 @@ const JobMatching = () => {
       <div className="jobs-list">
         {jobs.map((job, index) => (
           <div key={index} className="job-card">
-            <h3>{job.title}</h3>
-            <p className="company">{job.company}</p>
-            <p className="location">{job.location}</p>
-            <div className="description" dangerouslySetInnerHTML={{ __html: job.snippet }} />
+            <h3 className="job-title">{job.title}</h3>
+            <div className="job-meta">
+              <span className="company">{job.company}</span>
+              {job.location && (
+                <>
+                  <span className="meta-separator">•</span>
+                  <span className="location">{job.location}</span>
+                </>
+              )}
+            </div>
+            <div className="description">
+              {job.snippet ? (
+                <div dangerouslySetInnerHTML={{ 
+                  __html: job.snippet.replace(/\.\.\./g, '') // Remove ellipses
+                }} />
+              ) : (
+                <p>No description available.</p>
+              )}
+            </div>
             <div className="job-actions">
               <button 
                 onClick={() => handleViewJob(job.link)} 
