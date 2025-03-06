@@ -1,176 +1,183 @@
-# 🏗️ CareerLens Architecture
+# CareerLens Application Architecture
+
+```mermaid
+graph LR
+    %% Define main components
+    User((👤 User))
+    Browser[🌐 Browser]
+    
+    subgraph ClientSide[Client Side]
+        style ClientSide fill:#e8f5e9,stroke:#4caf50,stroke-width:2px
+        React[React Framework]
+        
+        subgraph FrontendPackages[Third Party Packages]
+            style FrontendPackages fill:#f3e5f5,stroke:#9c27b0,stroke-width:1px
+            Packages["
+                @mui/material
+                @emotion/react
+                @fullcalendar
+                axios
+                react-router-dom
+                JWT management
+            "]
+        end
+    end
+    
+    subgraph ServerSide[Server Side]
+        style ServerSide fill:#ffebee,stroke:#f44336,stroke-width:2px
+        Express[Express Framework]
+        
+        subgraph BackendPackages[Third Party Packages]
+            style BackendPackages fill:#e3f2fd,stroke:#2196f3,stroke-width:1px
+            ServerPackages["
+                express
+                mongoose
+                multer
+                bcryptjs
+                jsonwebtoken
+                pdf-parse
+            "]
+        end
+    end
+    
+    subgraph ExternalAPIs[External APIs]
+        style ExternalAPIs fill:#fff3e0,stroke:#ff9800,stroke-width:2px
+        APIs["
+            OpenAI - Resume Analysis
+            DeepSeek - AI Processing
+            Jooble - Job Search
+        "]
+    end
+    
+    subgraph Database[Database Layer]
+        style Database fill:#fce4ec,stroke:#e91e63,stroke-width:2px
+        MongoDB[(MongoDB Atlas)]
+    end
+    
+    %% Define connections with labels
+    User -->|Web Address| Browser
+    Browser -->|HTTP Request| ClientSide
+    ClientSide -->|API Request| ServerSide
+    ServerSide -->|API Response| ClientSide
+    ServerSide -->|Mongoose Query| Database
+    Database -->|Data| ServerSide
+    ServerSide -->|API Requests| ExternalAPIs
+    ExternalAPIs -->|API Response| ServerSide
+    Browser -->|HTML/JSON| User
+
+    %% Style nodes
+    style User fill:#bbdefb,stroke:#1976d2,stroke-width:2px
+    style Browser fill:#c8e6c9,stroke:#388e3c,stroke-width:2px
+    style React fill:#b2dfdb,stroke:#00796b,stroke-width:2px
+    style Express fill:#ffcdd2,stroke:#d32f2f,stroke-width:2px
+    style MongoDB fill:#f8bbd0,stroke:#c2185b,stroke-width:2px
+```
+
+## 🔍 System Components
+
+### 👤 User Layer
+- Web browser access
+- User interface interaction
+- Form submissions and file uploads
+
+### 🌐 Client Side (Frontend)
+- **Framework**: React
+- **Key Features**:
+  - Responsive UI with Material-UI
+  - State management
+  - Route handling
+  - API integration
+  - File upload handling
+  - Real-time updates
+
+### ⚙️ Server Side (Backend)
+- **Framework**: Express.js
+- **Key Features**:
+  - RESTful API endpoints
+  - Authentication & Authorization
+  - File processing
+  - Data validation
+  - Error handling
+  - External API integration
+
+### 🗄️ Database Layer
+- **Technology**: MongoDB Atlas
+- **Features**:
+  - Cloud hosting
+  - Scalable storage
+  - Data redundancy
+  - Automated backups
+  - Security compliance
+
+### 🔌 External Services
+- **OpenAI API**: Resume analysis and skill extraction
+- **DeepSeek API**: Advanced AI processing
+- **Jooble API**: Job search and listings
+
+## 🔄 Data Flow Architecture
+
+```mermaid
+sequenceDiagram
+    participant User as 👤 User
+    participant Frontend as 🎨 Frontend
+    participant Backend as ⚙️ Backend
+    participant External as 🌐 External APIs
+    participant DB as 💾 Database
+
+    User->>Frontend: 1. Access Application
+    Frontend->>Backend: 2. API Request
+    Backend->>External: 3. External Service Call
+    External-->>Backend: 4. Service Response
+    Backend->>DB: 5. Store Data
+    DB-->>Backend: 6. Data Response
+    Backend-->>Frontend: 7. API Response
+    Frontend-->>User: 8. Display Results
+
+    note over Frontend,Backend: Secure Communication via JWT
+    note over Backend,DB: Mongoose ODM Layer
+    note over Backend,External: API Integration Layer
+```
+
+## 🛡️ Security Architecture
 
 ```mermaid
 graph TD
-    subgraph Client[🖥️ Frontend - React Application]
-        A[📱 User Interface] --> B[Components]
-        B --> B1[Resume Upload]
-        B --> B2[Job Search]
-        B --> B3[Application Tracker]
-        B --> B4[Calendar View]
-        B --> B5[Authentication]
+    subgraph SecurityLayers[Security Implementation]
+        style SecurityLayers fill:#e8eaf6,stroke:#3f51b5,stroke-width:2px
         
-        C[📡 API Services] --> D[Axios HTTP Client]
+        JWT[JWT Authentication]
+        CORS[CORS Protection]
+        Encrypt[Data Encryption]
+        Validate[Input Validation]
         
-        E[🔐 Auth Context] --> F[JWT Management]
+        JWT --> CORS
+        CORS --> Encrypt
+        Encrypt --> Validate
     end
-
-    subgraph Server[⚙️ Backend - Express Server]
-        G[🛣️ Routes] --> G1[Auth Routes]
-        G --> G2[Upload Routes]
-        G --> G3[Analyze Routes]
-        G --> G4[Jobs Routes]
-        G --> G5[Applications Routes]
-        
-        H[🔒 Middleware] --> H1[Auth Middleware]
-        H --> H2[File Upload]
-        
-        I[📊 Controllers] --> I1[User Controller]
-        I --> I2[Resume Controller]
-        I --> I3[Job Controller]
-        
-        J[💾 Models] --> J1[User Model]
-        J --> J2[Application Model]
-        J --> J3[Job Model]
-    end
-
-    subgraph External[🌐 External Services]
-        K[OpenAI API]
-        L[DeepSeek API]
-        M[Jooble API]
-    end
-
-    subgraph Database[🗄️ Database]
-        N[MongoDB Atlas]
-    end
-
-    %% Connections
-    D --> G
-    G --> I
-    I --> J
-    J --> N
-    I --> External
-    H --> G
-
-    style Client fill:#1e293b,stroke:#60a5fa,stroke-width:2px
-    style Server fill:#1e293b,stroke:#34d399,stroke-width:2px
-    style External fill:#1e293b,stroke:#f472b6,stroke-width:2px
-    style Database fill:#1e293b,stroke:#fbbf24,stroke-width:2px
 ```
-
-## 🔍 Detailed Component Overview
-
-### 🖥️ Frontend Components
-
-1. **User Interface Components**
-   - Resume Upload: Handles file uploads (PDF, DOC, DOCX)
-   - Job Search: Integrates with job search APIs
-   - Application Tracker: Manages job applications
-   - Calendar View: Visualizes application timeline
-   - Authentication: Handles user login/registration
-
-2. **Services Layer**
-   - API Services: Manages all backend communication
-   - Auth Context: Handles authentication state
-   - JWT Management: Manages authentication tokens
-
-### ⚙️ Backend Components
-
-1. **Routes**
-   - Auth Routes: User authentication endpoints
-   - Upload Routes: File upload handling
-   - Analyze Routes: Resume analysis
-   - Jobs Routes: Job search and management
-   - Applications Routes: Application tracking
-
-2. **Middleware**
-   - Auth Middleware: JWT verification
-   - File Upload: Multer configuration
-   - Error Handling: Global error management
-
-3. **Controllers**
-   - User Controller: User management logic
-   - Resume Controller: Resume processing
-   - Job Controller: Job search and matching
-
-4. **Models**
-   - User Model: User data schema
-   - Application Model: Job application schema
-   - Job Model: Job listing schema
-
-### 🌐 External Services Integration
-
-1. **AI Services**
-   - OpenAI API: Primary resume analysis
-   - DeepSeek API: Alternative analysis service
-
-2. **Job Search**
-   - Jooble API: Job listing provider
-
-### 🗄️ Database
-
-- MongoDB Atlas: Cloud-hosted database service
-- Mongoose ODM: Database interaction layer
-
-## 🔄 Data Flow
-
-1. **Resume Analysis Flow**
-   ```mermaid
-   sequenceDiagram
-       participant User
-       participant Frontend
-       participant Backend
-       participant AI Services
-       participant Database
-
-       User->>Frontend: Upload Resume
-       Frontend->>Backend: Send File
-       Backend->>AI Services: Request Analysis
-       AI Services-->>Backend: Analysis Results
-       Backend->>Database: Store Results
-       Backend-->>Frontend: Return Analysis
-       Frontend-->>User: Display Results
-   ```
-
-2. **Job Search Flow**
-   ```mermaid
-   sequenceDiagram
-       participant User
-       participant Frontend
-       participant Backend
-       participant Jooble API
-       participant Database
-
-       User->>Frontend: Search Jobs
-       Frontend->>Backend: Search Request
-       Backend->>Jooble API: API Request
-       Jooble API-->>Backend: Job Listings
-       Backend->>Database: Cache Results
-       Backend-->>Frontend: Return Jobs
-       Frontend-->>User: Display Listings
-   ```
-
-## 🔐 Security Measures
-
-1. **Authentication**
-   - JWT-based authentication
-   - Password hashing with bcrypt
-   - Secure session management
-
-2. **Data Protection**
-   - CORS configuration
-   - Environment variable protection
-   - Input validation and sanitization
 
 ## 🚀 Deployment Architecture
 
 ```mermaid
-graph LR
-    subgraph Production[Production Environment]
-        A[Netlify] --> B[Frontend]
-        C[Render.com] --> D[Backend]
-        E[MongoDB Atlas] --> F[Database]
+graph TB
+    subgraph DeploymentFlow[Deployment Infrastructure]
+        style DeploymentFlow fill:#e1f5fe,stroke:#03a9f4,stroke-width:2px
+        
+        Git[GitHub Repository]
+        CI[CI/CD Pipeline]
+        
+        subgraph Production[Production Environment]
+            style Production fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px
+            
+            Frontend[Netlify - Frontend]
+            Backend[Render.com - Backend]
+            Database[(MongoDB Atlas)]
+            
+            Frontend --> Backend
+            Backend --> Database
+        end
+        
+        Git --> CI
+        CI --> Production
     end
-
-    style Production fill:#1e293b,stroke:#60a5fa,stroke-width:2px
 ``` 
