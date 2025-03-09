@@ -8,8 +8,7 @@
 **/.nyc_output/
 
 # Production
-**/build/
-**/dist/
+
 **/.next/
 **/.nuxt/
 **/.vuepress/dist
