@@ -4,8 +4,11 @@
   "description": "CareerLens Application",
   "scripts": {
     "start": "cd backend && npm start",
-    "install": "cd backend && npm install",
-    "build": "cd backend && npm install"
+    "start:frontend": "cd frontend && npm start",
+    "install": "cd backend && npm install && cd ../frontend && npm install",
+    "build": "cd backend && npm install && cd ../frontend && npm install && npm run build",
+    "build:backend": "cd backend && npm install",
+    "build:frontend": "cd frontend && npm install && npm run build"
   },
   "engines": {
     "node": "16.x"
