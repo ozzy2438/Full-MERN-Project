@@ -10,7 +10,7 @@ const app = express();
 
 // CORS settings
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001', 'https://careerlens.onrender.com'],
+  origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001',],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token', 'Accept'],
   credentials: true,
@@ -39,6 +39,22 @@ if (!fs.existsSync(uploadsPath)) {
   fs.mkdirSync(uploadsPath, { recursive: true });
 }
 app.use('/uploads', express.static(uploadsPath));
+
+// Root route
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'CareerLens API is running',
+    version: '1.0.0',
+    endpoints: [
+      '/api/auth',
+      '/api/jobs',
+      '/api/applications',
+      '/api/upload',
+      '/api/analyze',
+      '/api/jobSearch'
+    ]
+  });
+});
 
 // Routes
 const uploadRouter = require('./routes/upload');
@@ -77,7 +93,7 @@ const PORT = process.env.PORT || 5001;
 const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log('Environment:', process.env.NODE_ENV);
-  console.log('CORS enabled for:', ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001', 'https://careerlens.onrender.com']);
+  console.log('CORS enabled for:', ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001',]);
 });
 
 // Graceful shutdown
