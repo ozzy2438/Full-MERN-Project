@@ -1,0 +1,13 @@
+{
+  "name": "careerlens",
+  "version": "1.0.0",
+  "description": "CareerLens Application",
+  "scripts": {
+    "start": "cd backend && npm start",
+    "install": "cd backend && npm install",
+    "build": "cd backend && npm install"
+  },
+  "engines": {
+    "node": "16.x"
+  }
+} 
