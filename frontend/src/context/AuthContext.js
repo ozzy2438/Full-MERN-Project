@@ -67,17 +67,25 @@ export const AuthProvider = ({ children }) => {
       console.log('AuthContext: Sending login request to:', loginUrl);
       console.log('AuthContext: Request data:', { email, password: '******' });
       
-      // Make direct axios call with full URL for debugging
-      const response = await axios({
-        method: 'post',
-        url: loginUrl,
-        data: { email, password },
+      // Create request data as a JSON string
+      const requestData = JSON.stringify({ email, password });
+      console.log('AuthContext: Stringified request data:', requestData);
+      
+      // Make direct fetch call with full URL for debugging
+      const fetchResponse = await fetch(loginUrl, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
-        timeout: 120000
+        body: requestData
       });
+      
+      console.log('AuthContext: Fetch response status:', fetchResponse.status);
+      const responseData = await fetchResponse.json();
+      console.log('AuthContext: Fetch response data:', responseData);
+      
+      const response = { data: responseData, status: fetchResponse.status };
       
       console.log('AuthContext: Login successful, token received');
       console.log('AuthContext: Response status:', response.status);

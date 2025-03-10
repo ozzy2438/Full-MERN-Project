@@ -35,6 +35,7 @@ import ApplicationTracker from './components/ApplicationTracker';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import Header from './components/Header';
+import ApiTest from './components/ApiTest';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import api from './services/api';
 import { Link } from 'react-router-dom';
@@ -356,6 +357,7 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/api-test" element={<ApiTest />} />
             <Route 
               path="/" 
               element={

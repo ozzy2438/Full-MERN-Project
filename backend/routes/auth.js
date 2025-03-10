@@ -98,7 +98,6 @@ router.post('/register', async (req, res) => {
 // @access  Public
 router.post('/login', async (req, res) => {
   console.log('Login request received:', { 
-    email: req.body?.email || 'not provided',
     headers: {
       'content-type': req.headers['content-type'],
       'origin': req.headers.origin || 'not provided'
@@ -107,9 +106,25 @@ router.post('/login', async (req, res) => {
   
   try {
     // Log the raw request body for debugging
-    console.log('Raw request body:', req.body);
+    console.log('Raw request body:', typeof req.body, req.body);
     
-    const { email, password } = req.body;
+    // Handle different request body formats
+    let email, password;
+    
+    if (typeof req.body === 'string') {
+      try {
+        const parsedBody = JSON.parse(req.body);
+        email = parsedBody.email;
+        password = parsedBody.password;
+      } catch (e) {
+        console.error('Failed to parse JSON body:', e);
+      }
+    } else if (req.body && typeof req.body === 'object') {
+      email = req.body.email;
+      password = req.body.password;
+    }
+    
+    console.log('Extracted credentials:', { email: email ? 'provided' : 'missing', password: password ? 'provided' : 'missing' });
 
     // Validate input
     if (!email || !password) {
@@ -242,6 +257,46 @@ router.get('/status', async (req, res) => {
       error: 'An error occurred while checking system status'
     });
   }
+});
+
+// @route   GET /api/auth/test
+// @desc    Test endpoint for CORS and connectivity
+// @access  Public
+router.get('/test', (req, res) => {
+  console.log('Test endpoint accessed');
+  console.log('Headers:', req.headers);
+  
+  res.json({
+    message: 'API test successful',
+    time: new Date().toISOString(),
+    headers: {
+      origin: req.headers.origin || 'not provided',
+      'content-type': req.headers['content-type'] || 'not provided',
+      'user-agent': req.headers['user-agent'] || 'not provided'
+    }
+  });
+});
+
+// @route   POST /api/auth/test-post
+// @desc    Test POST endpoint for CORS and body parsing
+// @access  Public
+router.post('/test-post', (req, res) => {
+  console.log('Test POST endpoint accessed');
+  console.log('Headers:', req.headers);
+  console.log('Body:', req.body);
+  console.log('Body type:', typeof req.body);
+  
+  res.json({
+    message: 'API POST test successful',
+    time: new Date().toISOString(),
+    receivedData: req.body,
+    receivedDataType: typeof req.body,
+    headers: {
+      origin: req.headers.origin || 'not provided',
+      'content-type': req.headers['content-type'] || 'not provided',
+      'user-agent': req.headers['user-agent'] || 'not provided'
+    }
+  });
 });
 
 module.exports = router;

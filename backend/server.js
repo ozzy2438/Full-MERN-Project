@@ -51,8 +51,37 @@ app.use((req, res, next) => {
 });
 
 // Body parser middleware
-app.use(express.json({ limit: '50mb' }));
+app.use(express.json({ limit: '50mb', strict: false }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
+// Raw body parser for debugging
+app.use((req, res, next) => {
+  if (req.method === 'POST' && req.path.includes('/auth/login')) {
+    let data = '';
+    req.on('data', chunk => {
+      data += chunk;
+    });
+    req.on('end', () => {
+      console.log('Raw request data:', data);
+      try {
+        if (data && typeof req.body !== 'object') {
+          req.rawBody = data;
+          try {
+            req.body = JSON.parse(data);
+            console.log('Parsed JSON body:', req.body);
+          } catch (e) {
+            console.error('Failed to parse JSON:', e);
+          }
+        }
+      } catch (e) {
+        console.error('Error processing raw body:', e);
+      }
+      next();
+    });
+  } else {
+    next();
+  }
+});
 
 // Create uploads folder and serve it statically
 const uploadsPath = path.join(__dirname, 'uploads');
