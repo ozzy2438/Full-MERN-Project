@@ -37,8 +37,26 @@ const upload = multer({
   }
 });
 
-router.post('/', upload.single('resume'), async (req, res) => {
+// CORS middleware specifically for upload route
+const corsMiddleware = (req, res, next) => {
+  // Allow requests from any origin
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-auth-token');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  next();
+};
+
+router.post('/', corsMiddleware, upload.single('resume'), async (req, res) => {
   try {
+    // Set CORS headers again just to be sure
+    res.header('Access-Control-Allow-Origin', '*');
+    
     if (!req.file) {
       return res.status(400).json({ error: 'File could not be uploaded' });
     }
@@ -57,9 +75,8 @@ router.post('/', upload.single('resume'), async (req, res) => {
       return res.status(500).json({ error: 'File was uploaded but could not be saved' });
     }
     
-    // Set CORS headers explicitly
-    res.header('Access-Control-Allow-Origin', req.headers.origin);
-    res.header('Access-Control-Allow-Credentials', true);
+    // Log request headers for debugging
+    console.log('Upload request headers:', req.headers);
     
     // Return just the filename instead of the full path
     res.json({

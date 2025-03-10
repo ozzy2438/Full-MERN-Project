@@ -100,12 +100,31 @@ Achievements:
   }
 }
 
+// CORS middleware specifically for analyze route
+const corsMiddleware = (req, res, next) => {
+  // Allow requests from any origin
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-auth-token');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  next();
+};
+
 // POST /api/analyze
-router.post('/', async (req, res) => {
+router.post('/', corsMiddleware, async (req, res) => {
   try {
+    // Set CORS headers again just to be sure
+    res.header('Access-Control-Allow-Origin', '*');
+    
     const { filePath } = req.body;
 
     console.log('Analysis request received, filePath:', filePath);
+    console.log('Request headers:', req.headers);
 
     if (!filePath) {
       console.error('No file path provided');
