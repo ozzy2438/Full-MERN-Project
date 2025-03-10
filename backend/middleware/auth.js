@@ -3,7 +3,20 @@ const jwt = require('jsonwebtoken');
 
 module.exports = function(req, res, next) {
   // Get token from header
-  const token = req.header('x-auth-token');
+  let token = req.header('x-auth-token');
+  
+  // Check for Bearer token in Authorization header
+  const authHeader = req.header('Authorization');
+  if (!token && authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.split(' ')[1];
+  }
+
+  // Log auth attempt for debugging
+  console.log('Auth middleware:', {
+    hasToken: !!token,
+    url: req.originalUrl,
+    method: req.method
+  });
 
   // Check if no token
   if (!token) {
@@ -18,6 +31,10 @@ module.exports = function(req, res, next) {
     
     // Add user from payload
     req.user = decoded.user;
+    
+    // Log success for debugging
+    console.log('Authentication successful for user:', req.user.id);
+    
     next();
   } catch (err) {
     console.error('Token verification error:', err);

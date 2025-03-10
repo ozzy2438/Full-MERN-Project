@@ -14,19 +14,25 @@ export const AuthProvider = ({ children }) => {
     const loadUser = async () => {
       const token = localStorage.getItem('token');
       
+      console.log('AuthContext: Checking for saved token');
+      
       if (token) {
+        console.log('AuthContext: Token found, attempting to load user');
         try {
           // Set token in axios headers
-          api.defaults.headers.common['x-auth-token'] = token;
+          api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
           
           // Get user data
           const response = await api.get('/auth/user');
+          console.log('AuthContext: User data loaded successfully');
           setUser(response.data);
         } catch (err) {
-          console.error('Error loading user:', err);
+          console.error('AuthContext: Error loading user:', err.message, err.response?.data);
           localStorage.removeItem('token');
-          delete api.defaults.headers.common['x-auth-token'];
+          delete api.defaults.headers.common['Authorization'];
         }
+      } else {
+        console.log('AuthContext: No token found');
       }
       
       setLoading(false);
@@ -37,20 +43,30 @@ export const AuthProvider = ({ children }) => {
 
   // Login function
   const login = async (email, password) => {
+    console.log('AuthContext: Login attempt');
     try {
       const response = await api.post('/auth/login', { email, password });
       
+      console.log('AuthContext: Login successful, token received');
+      
       // Save token
-      localStorage.setItem('token', response.data.token);
-      api.defaults.headers.common['x-auth-token'] = response.data.token;
+      const token = response.data.token;
+      localStorage.setItem('token', token);
+      
+      // Set token in axios headers
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      console.log('AuthContext: Token set in headers');
       
       // Get user data
+      console.log('AuthContext: Fetching user data');
       const userResponse = await api.get('/auth/user');
+      console.log('AuthContext: User data received');
       setUser(userResponse.data);
       
       setError(null);
       return true;
     } catch (err) {
+      console.error('AuthContext: Login error:', err.message, err.response?.data);
       setError(err.response?.data?.error || 'An error occurred during login');
       return false;
     }

@@ -36,10 +36,20 @@ const Login = () => {
     setError('');
 
     try {
-      await login(formData.email, formData.password);
-      navigate('/');
+      console.log('Attempting login with:', { email: formData.email });
+      const success = await login(formData.email, formData.password);
+      
+      console.log('Login result:', success ? 'success' : 'failed');
+      
+      if (success) {
+        console.log('Redirecting to dashboard');
+        navigate('/dashboard');
+      } else {
+        setError('Login failed. Please check your credentials.');
+      }
     } catch (err) {
-      setError(err.response?.data?.message || 'An error occurred during login. Please try again.');
+      console.error('Login error:', err);
+      setError(err.response?.data?.message || err.message || 'An error occurred during login. Please try again.');
     } finally {
       setLoading(false);
     }

@@ -364,11 +364,27 @@ function App() {
                 </ProtectedRoute>
               } 
             />
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <MainContent />
+                </ProtectedRoute>
+              } 
+            />
             <Route
               path="/job-matching"
               element={
                 <ProtectedRoute>
                   <JobMatching />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/applications"
+              element={
+                <ProtectedRoute>
+                  <ApplicationTracker />
                 </ProtectedRoute>
               }
             />

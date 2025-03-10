@@ -1,8 +1,11 @@
 // frontend/src/services/api.js
 import axios from 'axios';
 
+// API URL'yi konsola yazdır (debug için)
+console.log('Using API URL:', process.env.REACT_APP_API_URL);
+
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'https://career-path.onrender.com/api',
+  baseURL: process.env.REACT_APP_API_URL,
   timeout: 120000, // Increase timeout to 2 minutes
   headers: {
     'Content-Type': 'application/json',
