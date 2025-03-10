@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 // API URL'yi konsola yazdır (debug için)
-const apiUrl = process.env.REACT_APP_API_URL;
+const apiUrl = process.env.REACT_APP_API_URL || 'https://career-path.onrender.com/api';
 console.log('Using API URL:', apiUrl);
 
 const api = axios.create({
@@ -175,4 +175,4 @@ const validateResponse = (response, expectedKeys = []) => {
 
 // Export both as default and named export
 export { api, validateResponse };
-export default api; // Default export ekledik
+export default api;

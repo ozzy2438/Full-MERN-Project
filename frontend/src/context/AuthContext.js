@@ -23,13 +23,29 @@ export const AuthProvider = ({ children }) => {
           api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
           
           // Get user data
+          console.log('AuthContext: Requesting user data from:', api.defaults.baseURL + '/auth/user');
           const response = await api.get('/auth/user');
           console.log('AuthContext: User data loaded successfully');
           setUser(response.data);
         } catch (err) {
-          console.error('AuthContext: Error loading user:', err.message, err.response?.data);
-          localStorage.removeItem('token');
-          delete api.defaults.headers.common['Authorization'];
+          console.error('AuthContext: Error loading user:', err.message);
+          console.error('AuthContext: Error details:', {
+            status: err.response?.status,
+            statusText: err.response?.statusText,
+            data: err.response?.data,
+            config: {
+              url: err.config?.url,
+              method: err.config?.method,
+              baseURL: err.config?.baseURL,
+              headers: err.config?.headers
+            }
+          });
+          
+          // Don't remove token on 404 errors during initial deployment testing
+          if (err.response?.status !== 404) {
+            localStorage.removeItem('token');
+            delete api.defaults.headers.common['Authorization'];
+          }
         }
       } else {
         console.log('AuthContext: No token found');
@@ -60,11 +76,18 @@ export const AuthProvider = ({ children }) => {
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       console.log('AuthContext: Token set in headers');
       
-      // Get user data
-      console.log('AuthContext: Fetching user data');
-      const userResponse = await api.get('/auth/user');
-      console.log('AuthContext: User data received');
-      setUser(userResponse.data);
+      try {
+        // Get user data
+        console.log('AuthContext: Fetching user data');
+        const userResponse = await api.get('/auth/user');
+        console.log('AuthContext: User data received');
+        setUser(userResponse.data);
+      } catch (userErr) {
+        console.error('AuthContext: Error fetching user data after login:', userErr.message);
+        // Continue with login success even if user data fetch fails
+        // This allows login to succeed even if the /auth/user endpoint has CORS issues
+        setUser({ email }); // Set minimal user data
+      }
       
       setError(null);
       return true;

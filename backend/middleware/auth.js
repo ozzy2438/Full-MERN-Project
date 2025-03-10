@@ -15,13 +15,18 @@ module.exports = function(req, res, next) {
   console.log('Auth middleware:', {
     hasToken: !!token,
     url: req.originalUrl,
-    method: req.method
+    method: req.method,
+    headers: {
+      authorization: authHeader ? 'present' : 'missing',
+      'x-auth-token': req.header('x-auth-token') ? 'present' : 'missing'
+    }
   });
 
   // Check if no token
   if (!token) {
     return res.status(401).json({ 
-      error: 'Authorization error, token not found' 
+      error: 'Authorization error, token not found',
+      message: 'No authentication token was provided in the request'
     });
   }
 
@@ -38,8 +43,17 @@ module.exports = function(req, res, next) {
     next();
   } catch (err) {
     console.error('Token verification error:', err);
+    
+    let errorMessage = 'Invalid token';
+    if (err.name === 'TokenExpiredError') {
+      errorMessage = 'Your session has expired. Please log in again.';
+    } else if (err.name === 'JsonWebTokenError') {
+      errorMessage = 'Invalid authentication token. Please log in again.';
+    }
+    
     res.status(401).json({ 
-      error: 'Invalid token' 
+      error: errorMessage,
+      code: err.name
     });
   }
 };
