@@ -36,19 +36,23 @@ const Login = () => {
     setError('');
 
     try {
-      console.log('Attempting login with:', { email: formData.email });
+      console.log('Login component: Attempting login with:', { email: formData.email });
+      
+      // API URL'yi kontrol et
+      console.log('Login component: API URL:', process.env.REACT_APP_API_URL);
+      
       const success = await login(formData.email, formData.password);
       
-      console.log('Login result:', success ? 'success' : 'failed');
+      console.log('Login component: Login result:', success ? 'success' : 'failed');
       
       if (success) {
-        console.log('Redirecting to dashboard');
+        console.log('Login component: Redirecting to dashboard');
         navigate('/dashboard');
       } else {
         setError('Login failed. Please check your credentials.');
       }
     } catch (err) {
-      console.error('Login error:', err);
+      console.error('Login component: Login error:', err);
       setError(err.response?.data?.message || err.message || 'An error occurred during login. Please try again.');
     } finally {
       setLoading(false);

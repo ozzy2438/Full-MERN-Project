@@ -45,6 +45,9 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     console.log('AuthContext: Login attempt');
     try {
+      console.log('AuthContext: Sending login request to:', api.defaults.baseURL + '/auth/login');
+      console.log('AuthContext: Request data:', { email, password: '******' });
+      
       const response = await api.post('/auth/login', { email, password });
       
       console.log('AuthContext: Login successful, token received');
@@ -66,7 +69,18 @@ export const AuthProvider = ({ children }) => {
       setError(null);
       return true;
     } catch (err) {
-      console.error('AuthContext: Login error:', err.message, err.response?.data);
+      console.error('AuthContext: Login error:', err.message);
+      console.error('AuthContext: Error details:', {
+        status: err.response?.status,
+        statusText: err.response?.statusText,
+        data: err.response?.data,
+        config: {
+          url: err.config?.url,
+          method: err.config?.method,
+          baseURL: err.config?.baseURL,
+          headers: err.config?.headers
+        }
+      });
       setError(err.response?.data?.error || 'An error occurred during login');
       return false;
     }

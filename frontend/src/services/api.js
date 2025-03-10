@@ -2,16 +2,17 @@
 import axios from 'axios';
 
 // API URL'yi konsola yazdır (debug için)
-console.log('Using API URL:', process.env.REACT_APP_API_URL);
+const apiUrl = process.env.REACT_APP_API_URL;
+console.log('Using API URL:', apiUrl);
 
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL,
+  baseURL: apiUrl,
   timeout: 120000, // Increase timeout to 2 minutes
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
   },
-  withCredentials: true,
+  withCredentials: false, // CORS sorunlarını önlemek için false yapıldı
   // Add retry logic
   retry: 3,
   retryDelay: 1000
