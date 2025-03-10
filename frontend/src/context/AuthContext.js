@@ -1,5 +1,6 @@
 // frontend/src/context/AuthContext.js
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import axios from 'axios';
 import api from '../services/api';
 
 const AuthContext = createContext(null);
@@ -61,12 +62,26 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     console.log('AuthContext: Login attempt');
     try {
-      console.log('AuthContext: Sending login request to:', api.defaults.baseURL + '/auth/login');
+      // Log full URL for debugging
+      const loginUrl = `${api.defaults.baseURL}/auth/login`;
+      console.log('AuthContext: Sending login request to:', loginUrl);
       console.log('AuthContext: Request data:', { email, password: '******' });
       
-      const response = await api.post('/auth/login', { email, password });
+      // Make direct axios call with full URL for debugging
+      const response = await axios({
+        method: 'post',
+        url: loginUrl,
+        data: { email, password },
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        timeout: 120000
+      });
       
       console.log('AuthContext: Login successful, token received');
+      console.log('AuthContext: Response status:', response.status);
+      console.log('AuthContext: Response headers:', response.headers);
       
       // Save token
       const token = response.data.token;
@@ -76,34 +91,35 @@ export const AuthProvider = ({ children }) => {
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       console.log('AuthContext: Token set in headers');
       
-      try {
-        // Get user data
-        console.log('AuthContext: Fetching user data');
-        const userResponse = await api.get('/auth/user');
-        console.log('AuthContext: User data received');
-        setUser(userResponse.data);
-      } catch (userErr) {
-        console.error('AuthContext: Error fetching user data after login:', userErr.message);
-        // Continue with login success even if user data fetch fails
-        // This allows login to succeed even if the /auth/user endpoint has CORS issues
-        setUser({ email }); // Set minimal user data
-      }
+      // Skip user data fetch for now to avoid CORS issues
+      // Just set basic user data
+      setUser({ email });
+      console.log('AuthContext: Set basic user data');
       
       setError(null);
       return true;
     } catch (err) {
       console.error('AuthContext: Login error:', err.message);
-      console.error('AuthContext: Error details:', {
-        status: err.response?.status,
-        statusText: err.response?.statusText,
-        data: err.response?.data,
-        config: {
-          url: err.config?.url,
-          method: err.config?.method,
-          baseURL: err.config?.baseURL,
-          headers: err.config?.headers
-        }
+      
+      // Log request details
+      console.error('AuthContext: Request details:', {
+        url: `${api.defaults.baseURL}/auth/login`,
+        method: 'POST',
+        data: { email, password: '******' }
       });
+      
+      // Log response details if available
+      if (err.response) {
+        console.error('AuthContext: Error response:', {
+          status: err.response.status,
+          statusText: err.response.statusText,
+          data: err.response.data,
+          headers: err.response.headers
+        });
+      } else if (err.request) {
+        console.error('AuthContext: No response received:', err.request);
+      }
+      
       setError(err.response?.data?.error || 'An error occurred during login');
       return false;
     }

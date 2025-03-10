@@ -2,7 +2,8 @@
 import axios from 'axios';
 
 // API URL'yi konsola yazdır (debug için)
-const apiUrl = process.env.REACT_APP_API_URL || 'https://career-path.onrender.com/api';
+// Make sure the API URL doesn't have a trailing slash
+const apiUrl = (process.env.REACT_APP_API_URL || 'https://career-path.onrender.com/api').replace(/\/$/, '');
 console.log('Using API URL:', apiUrl);
 
 const api = axios.create({
@@ -16,6 +17,13 @@ const api = axios.create({
   // Add retry logic
   retry: 3,
   retryDelay: 1000
+});
+
+// Log all requests in development and production
+console.log('API Configuration:', {
+  baseURL: apiUrl,
+  withCredentials: false,
+  timeout: 120000
 });
 
 // Add a retry interceptor

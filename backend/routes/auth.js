@@ -97,16 +97,26 @@ router.post('/register', async (req, res) => {
 // @desc    Login user & get token
 // @access  Public
 router.post('/login', async (req, res) => {
-  console.log('Login request received:', { email: req.body.email });
+  console.log('Login request received:', { 
+    email: req.body?.email || 'not provided',
+    headers: {
+      'content-type': req.headers['content-type'],
+      'origin': req.headers.origin || 'not provided'
+    }
+  });
   
   try {
+    // Log the raw request body for debugging
+    console.log('Raw request body:', req.body);
+    
     const { email, password } = req.body;
 
     // Validate input
     if (!email || !password) {
       console.log('Missing required fields');
       return res.status(400).json({
-        error: 'Please fill in all fields'
+        error: 'Please fill in all fields',
+        message: 'Email and password are required'
       });
     }
 
@@ -115,7 +125,8 @@ router.post('/login', async (req, res) => {
     if (!user) {
       console.log('User not found:', email);
       return res.status(400).json({
-        error: 'User not found'
+        error: 'Invalid credentials',
+        message: 'The email or password you entered is incorrect'
       });
     }
 
@@ -124,7 +135,8 @@ router.post('/login', async (req, res) => {
     if (!isMatch) {
       console.log('Invalid password for user:', email);
       return res.status(400).json({
-        error: 'Invalid email or password'
+        error: 'Invalid credentials',
+        message: 'The email or password you entered is incorrect'
       });
     }
 
@@ -144,7 +156,19 @@ router.post('/login', async (req, res) => {
           console.error('JWT Sign error:', err);
           throw err;
         }
-        res.json({ token });
+        
+        // Log successful login
+        console.log('Login successful for:', email);
+        
+        // Return token with user info
+        res.json({ 
+          token,
+          user: {
+            id: user.id,
+            name: user.name,
+            email: user.email
+          }
+        });
       }
     );
 
@@ -152,6 +176,7 @@ router.post('/login', async (req, res) => {
     console.error('Login error:', err);
     res.status(500).json({
       error: 'An error occurred during login',
+      message: 'Server error. Please try again later.',
       details: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
   }
@@ -162,18 +187,26 @@ router.post('/login', async (req, res) => {
 // @access  Private
 router.get('/user', auth, async (req, res) => {
   try {
+    console.log('User data request for ID:', req.user.id);
+    
     // Get user data (exclude password)
     const user = await User.findById(req.user.id).select('-password');
     if (!user) {
+      console.log('User not found in database:', req.user.id);
       return res.status(404).json({
-        error: 'User not found'
+        error: 'User not found',
+        message: 'The requested user could not be found in the database'
       });
     }
+    
+    console.log('User data retrieved successfully for:', user.email);
     res.json(user);
   } catch (err) {
     console.error('Get user error:', err);
     res.status(500).json({
-      error: 'An error occurred while getting user information'
+      error: 'An error occurred while getting user information',
+      message: 'Server error. Please try again later.',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
   }
 });

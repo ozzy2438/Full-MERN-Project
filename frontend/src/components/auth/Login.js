@@ -43,6 +43,23 @@ const Login = () => {
       
       // Add debug info
       console.log('Login component: Browser info:', navigator.userAgent);
+      console.log('Login component: Current URL:', window.location.href);
+      
+      // Try direct fetch to test CORS
+      try {
+        console.log('Login component: Testing CORS with fetch...');
+        const testResponse = await fetch(`${process.env.REACT_APP_API_URL || 'https://career-path.onrender.com/api'}/auth/status`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        console.log('Login component: CORS test response status:', testResponse.status);
+        const testData = await testResponse.json();
+        console.log('Login component: CORS test response data:', testData);
+      } catch (corsErr) {
+        console.error('Login component: CORS test failed:', corsErr);
+      }
       
       const success = await login(formData.email, formData.password);
       
@@ -52,7 +69,7 @@ const Login = () => {
         console.log('Login component: Redirecting to dashboard');
         navigate('/dashboard');
       } else {
-        setError('Login failed. Please check your credentials.');
+        setError('Login failed. Please check your credentials and try again.');
       }
     } catch (err) {
       console.error('Login component: Login error:', err);

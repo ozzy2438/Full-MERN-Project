@@ -8,13 +8,14 @@ const fs = require('fs');
 
 const app = express();
 
-// CORS settings
+// CORS settings - Allow all origins
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001', 'https://careerlens.onrender.com', 'https://careerworld-kq40.onrender.com', '*'],
+  origin: '*', // Allow all origins
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token', 'Accept'],
-  credentials: true,
-  optionsSuccessStatus: 200
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token', 'Accept', 'Origin', 'X-Requested-With'],
+  credentials: false, // Set to false when using '*' for origin
+  optionsSuccessStatus: 200,
+  preflightContinue: false
 }));
 
 // Special middleware for CORS Pre-flight OPTIONS
@@ -24,13 +25,28 @@ app.options('*', cors());
 app.use((req, res, next) => {
   // Allow requests from any origin
   res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Credentials', true);
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-auth-token');
-  console.log('CORS Headers:', {
-    origin: req.headers.origin,
-    method: req.method
+  res.header('Access-Control-Max-Age', '86400'); // 24 hours
+  
+  // Log request details for debugging
+  console.log('CORS Request:', {
+    origin: req.headers.origin || 'No Origin',
+    method: req.method,
+    path: req.path,
+    headers: {
+      'content-type': req.headers['content-type'],
+      'authorization': req.headers['authorization'] ? 'Present' : 'Not Present',
+      'x-auth-token': req.headers['x-auth-token'] ? 'Present' : 'Not Present'
+    }
   });
+  
+  // Handle OPTIONS requests
+  if (req.method === 'OPTIONS') {
+    console.log('Handling OPTIONS request');
+    return res.status(200).end();
+  }
+  
   next();
 });
 
