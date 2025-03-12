@@ -1,8 +1,7 @@
 services:
   - type: web
     name: full-mern-project-frontend
-    env: static
-    buildCommand: cd frontend && npm install && npm run build
+    buildCommand: cd frontend && chmod +x build.sh && ./build.sh
     staticPublishPath: frontend/build
     envVars:
       - key: REACT_APP_API_URL
