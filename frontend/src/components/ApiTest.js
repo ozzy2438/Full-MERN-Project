@@ -9,7 +9,7 @@ const ApiTest = () => {
   const [error, setError] = useState(null);
   const [postError, setPostError] = useState(null);
 
-  const apiUrl = process.env.REACT_APP_API_URL || 'https://full-mern-project.onrender.com/api';
+  const apiUrl = process.env.REACT_APP_API_URL || 'https://full-mern-project.onrender.com';
 
   const runGetTest = async () => {
     setLoading(true);

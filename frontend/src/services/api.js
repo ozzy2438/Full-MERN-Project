@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // API URL'yi konsola yazdır (debug için)
 // Make sure the API URL doesn't have a trailing slash
-const apiUrl = (process.env.REACT_APP_API_URL || 'https://full-mern-project.onrender.com/api').replace(/\/$/, '');
+const apiUrl = (process.env.REACT_APP_API_URL || 'https://full-mern-project.onrender.com').replace(/\/$/, '');
 console.log('Using API URL:', apiUrl);
 
 const api = axios.create({

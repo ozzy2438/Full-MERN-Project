@@ -24,8 +24,8 @@ export const AuthProvider = ({ children }) => {
           api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
           
           // Get user data
-          console.log('AuthContext: Requesting user data from:', api.defaults.baseURL + '/auth/user');
-          const response = await api.get('/auth/user');
+          console.log('AuthContext: Requesting user data from:', api.defaults.baseURL + '/api/auth/user');
+          const response = await api.get('/api/auth/user');
           console.log('AuthContext: User data loaded successfully');
           setUser(response.data);
         } catch (err) {
@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }) => {
     console.log('AuthContext: Login attempt');
     try {
       // Log full URL for debugging
-      const loginUrl = `${api.defaults.baseURL}/auth/login`;
+      const loginUrl = `${api.defaults.baseURL}/api/auth/login`;
       console.log('AuthContext: Sending login request to:', loginUrl);
       console.log('AuthContext: Request data:', { email, password: '******' });
       
@@ -111,7 +111,7 @@ export const AuthProvider = ({ children }) => {
       
       // Log request details
       console.error('AuthContext: Request details:', {
-        url: `${api.defaults.baseURL}/auth/login`,
+        url: `${api.defaults.baseURL}/api/auth/login`,
         method: 'POST',
         data: { email, password: '******' }
       });
@@ -136,7 +136,7 @@ export const AuthProvider = ({ children }) => {
   // Register function
   const register = async (name, email, password) => {
     try {
-      const response = await api.post('/auth/register', {
+      const response = await api.post('/api/auth/register', {
         name,
         email,
         password
@@ -147,7 +147,7 @@ export const AuthProvider = ({ children }) => {
       api.defaults.headers.common['x-auth-token'] = response.data.token;
       
       // Get user data
-      const userResponse = await api.get('/auth/user');
+      const userResponse = await api.get('/api/auth/user');
       setUser(userResponse.data);
       
       setError(null);

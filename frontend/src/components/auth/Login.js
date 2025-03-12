@@ -48,7 +48,7 @@ const Login = () => {
       // Try direct fetch to test CORS
       try {
         console.log('Login component: Testing CORS with fetch...');
-        const testResponse = await fetch(`${process.env.REACT_APP_API_URL || 'https://career-path.onrender.com/api'}/auth/status`, {
+        const testResponse = await fetch(`${process.env.REACT_APP_API_URL || 'https://full-mern-project.onrender.com'}/api/auth/status`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json'
