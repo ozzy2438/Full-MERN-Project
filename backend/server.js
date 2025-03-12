@@ -15,7 +15,8 @@ app.use(cors({
     'http://127.0.0.1:3000', 
     'http://localhost:3001', 
     'http://127.0.0.1:3001',
-    'https://full-mern-project.onrender.com'
+    'https://full-mern-project.onrender.com',
+    'https://careerpath-jxoi.onrender.com'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token', 'Accept'],
@@ -110,7 +111,8 @@ const server = app.listen(PORT, () => {
     'http://127.0.0.1:3000', 
     'http://localhost:3001', 
     'http://127.0.0.1:3001',
-    'https://full-mern-project.onrender.com'
+    'https://full-mern-project.onrender.com',
+    'https://careerpath-jxoi.onrender.com'
   ]);
 });
 
