@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const pdfParse = require('pdf-parse');
 const axios = require('axios');
+const cors = require('cors');
 
 const router = express.Router();
 
@@ -69,6 +70,13 @@ router.post('/', async (req, res) => {
     const { filePath } = req.body;
 
     console.log('Analysis request received, filePath:', filePath);
+
+    // Check if PDF processing is enabled
+    const pdfProcessingEnabled = process.env.PDF_PROCESSING_ENABLED === 'true';
+    if (!pdfProcessingEnabled) {
+      console.log('PDF processing is disabled. Returning default analysis.');
+      return res.status(200).json(createBasicAnalysis("Your resume content would be analyzed here."));
+    }
 
     if (!filePath) {
       console.error('No file path provided');
