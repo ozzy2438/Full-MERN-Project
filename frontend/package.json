@@ -15,11 +15,12 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.29.0",
-    "react-scripts": "^5.0.1"
+    "react-scripts": "^5.0.1",
+    "workbox-webpack-plugin": "^6.5.4"
   },
   "scripts": {
     "start": "DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false react-scripts start",
-    "build": "DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false BROWSER=none CI=false DISABLE_WORKBOX=true react-scripts build",
+    "build": "DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false CI=false react-scripts build --no-workbox",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
