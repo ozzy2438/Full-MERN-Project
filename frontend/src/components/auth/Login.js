@@ -41,26 +41,6 @@ const Login = () => {
       // API URL'yi kontrol et
       console.log('Login component: API URL:', process.env.REACT_APP_API_URL);
       
-      // Add debug info
-      console.log('Login component: Browser info:', navigator.userAgent);
-      console.log('Login component: Current URL:', window.location.href);
-      
-      // Try direct fetch to test CORS
-      try {
-        console.log('Login component: Testing CORS with fetch...');
-        const testResponse = await fetch(`${process.env.REACT_APP_API_URL || 'https://full-mern-project.onrender.com'}/api/auth/status`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-        console.log('Login component: CORS test response status:', testResponse.status);
-        const testData = await testResponse.json();
-        console.log('Login component: CORS test response data:', testData);
-      } catch (corsErr) {
-        console.error('Login component: CORS test failed:', corsErr);
-      }
-      
       const success = await login(formData.email, formData.password);
       
       console.log('Login component: Login result:', success ? 'success' : 'failed');

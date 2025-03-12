@@ -71,25 +71,11 @@ export const AuthProvider = ({ children }) => {
       const requestData = JSON.stringify({ email, password });
       console.log('AuthContext: Stringified request data:', requestData);
       
-      // Make direct fetch call with full URL for debugging
-      const fetchResponse = await fetch(loginUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: requestData
-      });
-      
-      console.log('AuthContext: Fetch response status:', fetchResponse.status);
-      const responseData = await fetchResponse.json();
-      console.log('AuthContext: Fetch response data:', responseData);
-      
-      const response = { data: responseData, status: fetchResponse.status };
+      // Use api instance instead of direct fetch for better error handling
+      const response = await api.post('/api/auth/login', { email, password });
       
       console.log('AuthContext: Login successful, token received');
       console.log('AuthContext: Response status:', response.status);
-      console.log('AuthContext: Response headers:', response.headers);
       
       // Save token
       const token = response.data.token;
@@ -99,10 +85,16 @@ export const AuthProvider = ({ children }) => {
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       console.log('AuthContext: Token set in headers');
       
-      // Skip user data fetch for now to avoid CORS issues
-      // Just set basic user data
-      setUser({ email });
-      console.log('AuthContext: Set basic user data');
+      // Get user data
+      try {
+        const userResponse = await api.get('/api/auth/user');
+        setUser(userResponse.data);
+        console.log('AuthContext: User data loaded');
+      } catch (userErr) {
+        console.error('AuthContext: Error loading user data:', userErr.message);
+        // Set basic user data if user endpoint fails
+        setUser({ email });
+      }
       
       setError(null);
       return true;
