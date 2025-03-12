@@ -29,25 +29,54 @@ async function extractTextFromPDF(pdfPath) {
     
     // Read PDF
     const dataBuffer = fs.readFileSync(pdfPath);
+    console.log(`PDF buffer size: ${dataBuffer.length} bytes`);
     
-    // PDF parse options
+    // PDF parse options - version seçeneğini kaldırdık
     const options = {
       max: 10 // Maximum number of pages
     };
     
-    // Parse PDF
-    const data = await pdfParse(dataBuffer, options);
+    console.log('PDF parse options:', JSON.stringify(options));
+    console.log('PDF parse module version:', require('pdf-parse/package.json').version);
+    console.log('PDF.js module version:', require('pdfjs-dist/package.json').version);
     
-    console.log(`Length of text extracted from PDF: ${data.text.length}`);
-    console.log(`Sample of text extracted from PDF: ${data.text.substring(0, 100)}...`);
-    
-    // Check if text is empty
-    if (!data.text || data.text.trim().length === 0) {
-      console.error('Text could not be extracted from PDF or text is empty');
-      throw new Error('Text could not be extracted from PDF or text is empty');
+    try {
+      // Parse PDF
+      console.log('Attempting to parse PDF...');
+      const data = await pdfParse(dataBuffer, options);
+      
+      console.log(`Length of text extracted from PDF: ${data.text.length}`);
+      console.log(`Sample of text extracted from PDF: ${data.text.substring(0, 100)}...`);
+      
+      // Check if text is empty
+      if (!data.text || data.text.trim().length === 0) {
+        console.error('Text could not be extracted from PDF or text is empty');
+        throw new Error('Text could not be extracted from PDF or text is empty');
+      }
+      
+      return data.text;
+    } catch (parseError) {
+      console.error('Error parsing PDF:', parseError);
+      
+      // Fallback: Try to extract text without options
+      console.log('Attempting to parse PDF without options...');
+      try {
+        const data = await pdfParse(dataBuffer);
+        
+        console.log(`Fallback: Length of text extracted from PDF: ${data.text.length}`);
+        console.log(`Fallback: Sample of text extracted from PDF: ${data.text.substring(0, 100)}...`);
+        
+        if (!data.text || data.text.trim().length === 0) {
+          console.error('Fallback: Text could not be extracted from PDF or text is empty');
+          throw new Error('Text could not be extracted from PDF or text is empty');
+        }
+        
+        return data.text;
+      } catch (fallbackError) {
+        console.error('Fallback error parsing PDF:', fallbackError);
+        throw fallbackError;
+      }
     }
-    
-    return data.text;
   } catch (error) {
     console.error('PDF text extraction error:', error);
     
@@ -99,76 +128,85 @@ router.post('/', async (req, res) => {
 
     // Extract text from file
     console.log('Extracting text from file...');
-    const resumeText = await extractTextFromPDF(fullPath);
-    console.log(`Extracted text length: ${resumeText.length} characters`);
     
-    // Check text length and truncate if necessary
-    const maxLength = 4000;
-    const truncatedText = resumeText.length > maxLength 
-      ? resumeText.substring(0, maxLength) 
-      : resumeText;
-    
-    console.log(`Truncated text length: ${truncatedText.length}`);
-    console.log(`Resume text sample: \n${truncatedText.substring(0, 200)}...`);
-    
-    // Attempt to analyze resume with available APIs
-    console.log('Attempting to analyze resume with available APIs');
-    
-    let analysisResult = null;
-    let errors = [];
-    
-    // Store results from both APIs
-    let deepseekResult = null;
-    let openaiResult = null;
-    
-    // Try DeepSeek API
-    if (process.env.DEEPSEEK_REASONER_API) {
-      try {
-        console.log('Using DeepSeek API for analysis');
-        deepseekResult = await callDeepSeekAPI(truncatedText);
-        console.log('DeepSeek API response received successfully');
-        analysisResult = deepseekResult;
-      } catch (deepseekError) {
-        console.error('DeepSeek API failed:', deepseekError.message);
-        errors.push({ api: 'DeepSeek', error: deepseekError.message });
-      }
-    } else {
-      console.log('DeepSeek API key not configured, skipping');
-    }
-    
-    // Try OpenAI API
-    if (process.env.OPENAI_API_KEY) {
-      try {
-        console.log('Using OpenAI API for analysis');
-        openaiResult = await callOpenAIAPI(truncatedText);
-        console.log('OpenAI API response received successfully');
-        
-        // If DeepSeek failed, use OpenAI result
-        if (!analysisResult) {
-          analysisResult = openaiResult;
+    try {
+      const resumeText = await extractTextFromPDF(fullPath);
+      console.log(`Extracted text length: ${resumeText.length} characters`);
+      
+      // Check text length and truncate if necessary
+      const maxLength = 4000;
+      const truncatedText = resumeText.length > maxLength 
+        ? resumeText.substring(0, maxLength) 
+        : resumeText;
+      
+      console.log(`Truncated text length: ${truncatedText.length}`);
+      console.log(`Resume text sample: \n${truncatedText.substring(0, 200)}...`);
+      
+      // Attempt to analyze resume with available APIs
+      console.log('Attempting to analyze resume with available APIs');
+      
+      let analysisResult = null;
+      let errors = [];
+      
+      // Store results from both APIs
+      let deepseekResult = null;
+      let openaiResult = null;
+      
+      // Try DeepSeek API
+      if (process.env.DEEPSEEK_REASONER_API) {
+        try {
+          console.log('Using DeepSeek API for analysis');
+          deepseekResult = await callDeepSeekAPI(truncatedText);
+          console.log('DeepSeek API response received successfully');
+          analysisResult = deepseekResult;
+        } catch (deepseekError) {
+          console.error('DeepSeek API failed:', deepseekError.message);
+          errors.push({ api: 'DeepSeek', error: deepseekError.message });
         }
-      } catch (openaiError) {
-        console.error('OpenAI API failed:', openaiError.message);
-        errors.push({ api: 'OpenAI', error: openaiError.message });
+      } else {
+        console.log('DeepSeek API key not configured, skipping');
       }
-    } else {
-      console.log('OpenAI API key not configured, skipping');
+      
+      // Try OpenAI API
+      if (process.env.OPENAI_API_KEY) {
+        try {
+          console.log('Using OpenAI API for analysis');
+          openaiResult = await callOpenAIAPI(truncatedText);
+          console.log('OpenAI API response received successfully');
+          
+          // If DeepSeek failed, use OpenAI result
+          if (!analysisResult) {
+            analysisResult = openaiResult;
+          }
+        } catch (openaiError) {
+          console.error('OpenAI API failed:', openaiError.message);
+          errors.push({ api: 'OpenAI', error: openaiError.message });
+        }
+      } else {
+        console.log('OpenAI API key not configured, skipping');
+      }
+      
+      // If both APIs returned results, merge them
+      if (deepseekResult && openaiResult) {
+        console.log('Merging results from both APIs');
+        analysisResult = mergeAPIResults(deepseekResult, openaiResult);
+      }
+      
+      // If no API works, use basic analysis
+      if (!analysisResult) {
+        console.log('All APIs failed, using basic analysis');
+        analysisResult = createBasicAnalysis(truncatedText);
+      }
+      
+      // Return the analysis result
+      return res.json(analysisResult);
+    } catch (extractError) {
+      console.error('Error extracting text from PDF:', extractError);
+      return res.status(500).json({ 
+        error: extractError.message,
+        details: 'Error occurred during PDF text extraction'
+      });
     }
-    
-    // If both APIs returned results, merge them
-    if (deepseekResult && openaiResult) {
-      console.log('Merging results from both APIs');
-      analysisResult = mergeAPIResults(deepseekResult, openaiResult);
-    }
-    
-    // If no API works, return error
-    if (!analysisResult) {
-      console.log('All APIs failed, returning error');
-      return res.status(500).json({ error: 'Failed to analyze resume with available APIs. Please try again later.' });
-    }
-    
-    // Return the analysis result
-    return res.json(analysisResult);
   } catch (error) {
     console.error('Error in analyze endpoint:', error);
     return res.status(500).json({ error: error.message });
