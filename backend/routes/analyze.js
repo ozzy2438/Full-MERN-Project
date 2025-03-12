@@ -32,8 +32,7 @@ async function extractTextFromPDF(pdfPath) {
     
     // PDF parse options
     const options = {
-      max: 10, // Maximum number of pages
-      version: 'v2.0.550'
+      max: 10 // Maximum number of pages
     };
     
     // Parse PDF
