@@ -36,6 +36,9 @@ CareerLens is an intelligent job application management platform designed to hel
 - **DeepSeek API**: For AI-powered resume evaluations
 - **Jooble API**: For job search functionality
 
+## 🌐 Live Demo
+You can access the live application here: [CareerLens](https://careerworld-kq40.onrender.com)
+
 ## 🚀 Getting Started
 
 ### Prerequisites
