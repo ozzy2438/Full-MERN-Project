@@ -97,41 +97,16 @@ router.post('/register', async (req, res) => {
 // @desc    Login user & get token
 // @access  Public
 router.post('/login', async (req, res) => {
-  console.log('Login request received:', { 
-    headers: {
-      'content-type': req.headers['content-type'],
-      'origin': req.headers.origin || 'not provided'
-    }
-  });
+  console.log('Login request received:', { email: req.body.email });
   
   try {
-    // Log the raw request body for debugging
-    console.log('Raw request body:', typeof req.body, req.body);
-    
-    // Handle different request body formats
-    let email, password;
-    
-    if (typeof req.body === 'string') {
-      try {
-        const parsedBody = JSON.parse(req.body);
-        email = parsedBody.email;
-        password = parsedBody.password;
-      } catch (e) {
-        console.error('Failed to parse JSON body:', e);
-      }
-    } else if (req.body && typeof req.body === 'object') {
-      email = req.body.email;
-      password = req.body.password;
-    }
-    
-    console.log('Extracted credentials:', { email: email ? 'provided' : 'missing', password: password ? 'provided' : 'missing' });
+    const { email, password } = req.body;
 
     // Validate input
     if (!email || !password) {
       console.log('Missing required fields');
       return res.status(400).json({
-        error: 'Please fill in all fields',
-        message: 'Email and password are required'
+        error: 'Please fill in all fields'
       });
     }
 
@@ -140,8 +115,7 @@ router.post('/login', async (req, res) => {
     if (!user) {
       console.log('User not found:', email);
       return res.status(400).json({
-        error: 'Invalid credentials',
-        message: 'The email or password you entered is incorrect'
+        error: 'User not found'
       });
     }
 
@@ -150,8 +124,7 @@ router.post('/login', async (req, res) => {
     if (!isMatch) {
       console.log('Invalid password for user:', email);
       return res.status(400).json({
-        error: 'Invalid credentials',
-        message: 'The email or password you entered is incorrect'
+        error: 'Invalid email or password'
       });
     }
 
@@ -171,19 +144,7 @@ router.post('/login', async (req, res) => {
           console.error('JWT Sign error:', err);
           throw err;
         }
-        
-        // Log successful login
-        console.log('Login successful for:', email);
-        
-        // Return token with user info
-        res.json({ 
-          token,
-          user: {
-            id: user.id,
-            name: user.name,
-            email: user.email
-          }
-        });
+        res.json({ token });
       }
     );
 
@@ -191,7 +152,6 @@ router.post('/login', async (req, res) => {
     console.error('Login error:', err);
     res.status(500).json({
       error: 'An error occurred during login',
-      message: 'Server error. Please try again later.',
       details: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
   }
@@ -202,26 +162,18 @@ router.post('/login', async (req, res) => {
 // @access  Private
 router.get('/user', auth, async (req, res) => {
   try {
-    console.log('User data request for ID:', req.user.id);
-    
     // Get user data (exclude password)
     const user = await User.findById(req.user.id).select('-password');
     if (!user) {
-      console.log('User not found in database:', req.user.id);
       return res.status(404).json({
-        error: 'User not found',
-        message: 'The requested user could not be found in the database'
+        error: 'User not found'
       });
     }
-    
-    console.log('User data retrieved successfully for:', user.email);
     res.json(user);
   } catch (err) {
     console.error('Get user error:', err);
     res.status(500).json({
-      error: 'An error occurred while getting user information',
-      message: 'Server error. Please try again later.',
-      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+      error: 'An error occurred while getting user information'
     });
   }
 });
@@ -257,46 +209,6 @@ router.get('/status', async (req, res) => {
       error: 'An error occurred while checking system status'
     });
   }
-});
-
-// @route   GET /api/auth/test
-// @desc    Test endpoint for CORS and connectivity
-// @access  Public
-router.get('/test', (req, res) => {
-  console.log('Test endpoint accessed');
-  console.log('Headers:', req.headers);
-  
-  res.json({
-    message: 'API test successful',
-    time: new Date().toISOString(),
-    headers: {
-      origin: req.headers.origin || 'not provided',
-      'content-type': req.headers['content-type'] || 'not provided',
-      'user-agent': req.headers['user-agent'] || 'not provided'
-    }
-  });
-});
-
-// @route   POST /api/auth/test-post
-// @desc    Test POST endpoint for CORS and body parsing
-// @access  Public
-router.post('/test-post', (req, res) => {
-  console.log('Test POST endpoint accessed');
-  console.log('Headers:', req.headers);
-  console.log('Body:', req.body);
-  console.log('Body type:', typeof req.body);
-  
-  res.json({
-    message: 'API POST test successful',
-    time: new Date().toISOString(),
-    receivedData: req.body,
-    receivedDataType: typeof req.body,
-    headers: {
-      origin: req.headers.origin || 'not provided',
-      'content-type': req.headers['content-type'] || 'not provided',
-      'user-agent': req.headers['user-agent'] || 'not provided'
-    }
-  });
 });
 
 module.exports = router;

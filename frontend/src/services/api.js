@@ -1,29 +1,17 @@
 // frontend/src/services/api.js
 import axios from 'axios';
 
-// API URL'yi konsola yazdır (debug için)
-// Make sure the API URL doesn't have a trailing slash
-const apiUrl = (process.env.REACT_APP_API_URL || 'https://careerworld-kq40.onrender.com').replace(/\/$/, '');
-console.log('Using API URL:', apiUrl);
-
 const api = axios.create({
-  baseURL: apiUrl,
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5001/api',
   timeout: 120000, // Increase timeout to 2 minutes
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
   },
-  withCredentials: false, // CORS sorunlarını önlemek için false yapıldı
+  withCredentials: true,
   // Add retry logic
   retry: 3,
   retryDelay: 1000
-});
-
-// Log all requests in development and production
-console.log('API Configuration:', {
-  baseURL: apiUrl,
-  withCredentials: false,
-  timeout: 120000
 });
 
 // Add a retry interceptor
@@ -183,4 +171,4 @@ const validateResponse = (response, expectedKeys = []) => {
 
 // Export both as default and named export
 export { api, validateResponse };
-export default api;
+export default api; // Default export ekledik

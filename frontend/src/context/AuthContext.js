@@ -1,6 +1,5 @@
 // frontend/src/context/AuthContext.js
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import axios from 'axios';
 import api from '../services/api';
 
 const AuthContext = createContext(null);
@@ -15,41 +14,19 @@ export const AuthProvider = ({ children }) => {
     const loadUser = async () => {
       const token = localStorage.getItem('token');
       
-      console.log('AuthContext: Checking for saved token');
-      
       if (token) {
-        console.log('AuthContext: Token found, attempting to load user');
         try {
           // Set token in axios headers
-          api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          api.defaults.headers.common['x-auth-token'] = token;
           
           // Get user data
-          console.log('AuthContext: Requesting user data from:', api.defaults.baseURL + '/api/auth/user');
-          const response = await api.get('/api/auth/user');
-          console.log('AuthContext: User data loaded successfully');
+          const response = await api.get('/auth/user');
           setUser(response.data);
         } catch (err) {
-          console.error('AuthContext: Error loading user:', err.message);
-          console.error('AuthContext: Error details:', {
-            status: err.response?.status,
-            statusText: err.response?.statusText,
-            data: err.response?.data,
-            config: {
-              url: err.config?.url,
-              method: err.config?.method,
-              baseURL: err.config?.baseURL,
-              headers: err.config?.headers
-            }
-          });
-          
-          // Don't remove token on 404 errors during initial deployment testing
-          if (err.response?.status !== 404) {
-            localStorage.removeItem('token');
-            delete api.defaults.headers.common['Authorization'];
-          }
+          console.error('Error loading user:', err);
+          localStorage.removeItem('token');
+          delete api.defaults.headers.common['x-auth-token'];
         }
-      } else {
-        console.log('AuthContext: No token found');
       }
       
       setLoading(false);
@@ -60,66 +37,20 @@ export const AuthProvider = ({ children }) => {
 
   // Login function
   const login = async (email, password) => {
-    console.log('AuthContext: Login attempt');
     try {
-      // Log full URL for debugging
-      const loginUrl = `${api.defaults.baseURL}/api/auth/login`;
-      console.log('AuthContext: Sending login request to:', loginUrl);
-      console.log('AuthContext: Request data:', { email, password: '******' });
-      
-      // Create request data as a JSON string
-      const requestData = JSON.stringify({ email, password });
-      console.log('AuthContext: Stringified request data:', requestData);
-      
-      // Use api instance instead of direct fetch for better error handling
-      const response = await api.post('/api/auth/login', { email, password });
-      
-      console.log('AuthContext: Login successful, token received');
-      console.log('AuthContext: Response status:', response.status);
+      const response = await api.post('/auth/login', { email, password });
       
       // Save token
-      const token = response.data.token;
-      localStorage.setItem('token', token);
-      
-      // Set token in axios headers
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      console.log('AuthContext: Token set in headers');
+      localStorage.setItem('token', response.data.token);
+      api.defaults.headers.common['x-auth-token'] = response.data.token;
       
       // Get user data
-      try {
-        const userResponse = await api.get('/api/auth/user');
-        setUser(userResponse.data);
-        console.log('AuthContext: User data loaded');
-      } catch (userErr) {
-        console.error('AuthContext: Error loading user data:', userErr.message);
-        // Set basic user data if user endpoint fails
-        setUser({ email });
-      }
+      const userResponse = await api.get('/auth/user');
+      setUser(userResponse.data);
       
       setError(null);
       return true;
     } catch (err) {
-      console.error('AuthContext: Login error:', err.message);
-      
-      // Log request details
-      console.error('AuthContext: Request details:', {
-        url: `${api.defaults.baseURL}/api/auth/login`,
-        method: 'POST',
-        data: { email, password: '******' }
-      });
-      
-      // Log response details if available
-      if (err.response) {
-        console.error('AuthContext: Error response:', {
-          status: err.response.status,
-          statusText: err.response.statusText,
-          data: err.response.data,
-          headers: err.response.headers
-        });
-      } else if (err.request) {
-        console.error('AuthContext: No response received:', err.request);
-      }
-      
       setError(err.response?.data?.error || 'An error occurred during login');
       return false;
     }
@@ -128,7 +59,7 @@ export const AuthProvider = ({ children }) => {
   // Register function
   const register = async (name, email, password) => {
     try {
-      const response = await api.post('/api/auth/register', {
+      const response = await api.post('/auth/register', {
         name,
         email,
         password
@@ -139,7 +70,7 @@ export const AuthProvider = ({ children }) => {
       api.defaults.headers.common['x-auth-token'] = response.data.token;
       
       // Get user data
-      const userResponse = await api.get('/api/auth/user');
+      const userResponse = await api.get('/auth/user');
       setUser(userResponse.data);
       
       setError(null);

@@ -8,14 +8,13 @@ const fs = require('fs');
 
 const app = express();
 
-// CORS settings - Allow all origins
+// CORS settings
 app.use(cors({
-  origin: '*', // Allow all origins
+  origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token', 'Accept', 'Origin', 'X-Requested-With'],
-  credentials: false, // Set to false when using '*' for origin
-  optionsSuccessStatus: 200,
-  preflightContinue: false
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token', 'Accept'],
+  credentials: true,
+  optionsSuccessStatus: 200
 }));
 
 // Special middleware for CORS Pre-flight OPTIONS
@@ -23,65 +22,16 @@ app.options('*', cors());
 
 // CORS debugging middleware
 app.use((req, res, next) => {
-  // Allow requests from any origin
-  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Origin', req.headers.origin);
+  res.header('Access-Control-Allow-Credentials', true);
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-auth-token');
-  res.header('Access-Control-Max-Age', '86400'); // 24 hours
-  
-  // Log request details for debugging
-  console.log('CORS Request:', {
-    origin: req.headers.origin || 'No Origin',
-    method: req.method,
-    path: req.path,
-    headers: {
-      'content-type': req.headers['content-type'],
-      'authorization': req.headers['authorization'] ? 'Present' : 'Not Present',
-      'x-auth-token': req.headers['x-auth-token'] ? 'Present' : 'Not Present'
-    }
-  });
-  
-  // Handle OPTIONS requests
-  if (req.method === 'OPTIONS') {
-    console.log('Handling OPTIONS request');
-    return res.status(200).end();
-  }
-  
   next();
 });
 
 // Body parser middleware
-app.use(express.json({ limit: '50mb', strict: false }));
+app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
-
-// Raw body parser for debugging
-app.use((req, res, next) => {
-  if (req.method === 'POST' && req.path.includes('/auth/login')) {
-    let data = '';
-    req.on('data', chunk => {
-      data += chunk;
-    });
-    req.on('end', () => {
-      console.log('Raw request data:', data);
-      try {
-        if (data && typeof req.body !== 'object') {
-          req.rawBody = data;
-          try {
-            req.body = JSON.parse(data);
-            console.log('Parsed JSON body:', req.body);
-          } catch (e) {
-            console.error('Failed to parse JSON:', e);
-          }
-        }
-      } catch (e) {
-        console.error('Error processing raw body:', e);
-      }
-      next();
-    });
-  } else {
-    next();
-  }
-});
 
 // Create uploads folder and serve it statically
 const uploadsPath = path.join(__dirname, 'uploads');
@@ -89,22 +39,6 @@ if (!fs.existsSync(uploadsPath)) {
   fs.mkdirSync(uploadsPath, { recursive: true });
 }
 app.use('/uploads', express.static(uploadsPath));
-
-// Root route
-app.get('/', (req, res) => {
-  res.json({ 
-    message: 'CareerLens API is running',
-    version: '1.0.0',
-    endpoints: [
-      '/api/auth',
-      '/api/jobs',
-      '/api/applications',
-      '/api/upload',
-      '/api/analyze',
-      '/api/jobSearch'
-    ]
-  });
-});
 
 // Routes
 const uploadRouter = require('./routes/upload');
@@ -143,7 +77,7 @@ const PORT = process.env.PORT || 5001;
 const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log('Environment:', process.env.NODE_ENV);
-  console.log('CORS enabled for all origins');
+  console.log('CORS enabled for:', ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001']);
 });
 
 // Graceful shutdown

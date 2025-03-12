@@ -36,49 +36,10 @@ const Login = () => {
     setError('');
 
     try {
-      console.log('Login component: Attempting login with:', { email: formData.email });
-      
-      // API URL'yi kontrol et
-      console.log('Login component: API URL:', process.env.REACT_APP_API_URL);
-      
-      const success = await login(formData.email, formData.password);
-      
-      console.log('Login component: Login result:', success ? 'success' : 'failed');
-      
-      if (success) {
-        console.log('Login component: Redirecting to dashboard');
-        navigate('/dashboard');
-      } else {
-        setError('Login failed. Please check your credentials and try again.');
-      }
+      await login(formData.email, formData.password);
+      navigate('/');
     } catch (err) {
-      console.error('Login component: Login error:', err);
-      
-      // More detailed error logging
-      if (err.response) {
-        console.error('Login component: Response error details:', {
-          status: err.response.status,
-          data: err.response.data,
-          headers: err.response.headers
-        });
-      } else if (err.request) {
-        console.error('Login component: Request was made but no response received');
-      }
-      
-      // User-friendly error message
-      let errorMessage = 'An error occurred during login. Please try again.';
-      
-      if (err.message && err.message.includes('Network Error')) {
-        errorMessage = 'Network error. Please check your internet connection or the server might be down.';
-      } else if (err.response?.status === 404) {
-        errorMessage = 'Login service not found. The API endpoint might be incorrect.';
-      } else if (err.response?.status === 401 || err.response?.status === 400) {
-        errorMessage = err.response.data?.message || 'Invalid credentials. Please check your email and password.';
-      } else if (err.response?.status >= 500) {
-        errorMessage = 'Server error. Please try again later.';
-      }
-      
-      setError(errorMessage);
+      setError(err.response?.data?.message || 'An error occurred during login. Please try again.');
     } finally {
       setLoading(false);
     }
