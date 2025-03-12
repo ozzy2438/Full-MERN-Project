@@ -31,12 +31,18 @@ async function extractTextFromPDF(pdfPath) {
     const dataBuffer = fs.readFileSync(pdfPath);
     console.log(`PDF buffer size: ${dataBuffer.length} bytes`);
     
-    // PDF parse options - version seçeneğini kaldırdık
+    // PDF parse options
     const options = {
-      max: 10 // Maximum number of pages
+      max: 10, // Maximum number of pages
+      // Set the PDF.js workerSrc to use the installed pdfjs-dist
+      pdfjsLib: {
+        workerSrc: require.resolve('pdfjs-dist/build/pdf.worker.js')
+      }
     };
     
-    console.log('PDF parse options:', JSON.stringify(options));
+    console.log('PDF parse options:', JSON.stringify(options, (key, value) => 
+      key === 'pdfjsLib' ? '[pdfjsLib Object]' : value
+    ));
     console.log('PDF parse module version:', require('pdf-parse/package.json').version);
     console.log('PDF.js module version:', require('pdfjs-dist/package.json').version);
     
