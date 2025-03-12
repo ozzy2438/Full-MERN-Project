@@ -1,11 +1,8 @@
 // frontend/src/services/api.js
 import axios from 'axios';
 
-// Production ortamında backend URL'sini doğrudan tanımla
-const API_URL = 'https://full-mern-project.onrender.com/api';
-
 const api = axios.create({
-  baseURL: API_URL, // Doğrudan tanımlanmış URL'yi kullan
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5001/api',
   timeout: 120000, // Increase timeout to 2 minutes
   headers: {
     'Content-Type': 'application/json',

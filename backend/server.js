@@ -10,14 +10,7 @@ const app = express();
 
 // CORS settings
 app.use(cors({
-  origin: [
-    'http://localhost:3000', 
-    'http://127.0.0.1:3000', 
-    'http://localhost:3001', 
-    'http://127.0.0.1:3001',
-    'https://full-mern-project.onrender.com',
-    'https://careerpath-jxoi.onrender.com'
-  ],
+  origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token', 'Accept'],
   credentials: true,
@@ -65,28 +58,6 @@ app.use('/api/auth', authRouter);
 // MongoDB connection
 connectDB();
 
-// Serve static assets in production
-if (process.env.NODE_ENV === 'production') {
-  console.log('Production mode: Serving static frontend files');
-  
-  // Set static folder - frontend build klasörünün yolunu belirtin
-  const buildPath = path.join(__dirname, '../frontend/build');
-  
-  // Statik dosyaları servis et
-  app.use(express.static(buildPath));
-  
-  // API olmayan tüm route'ları frontend'e yönlendir
-  app.get('*', (req, res, next) => {
-    // API route'larını atla
-    if (req.url.startsWith('/api/')) {
-      return next();
-    }
-    res.sendFile(path.join(buildPath, 'index.html'));
-  });
-  
-  console.log('Frontend build path:', buildPath);
-}
-
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Error:', err);
@@ -96,7 +67,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 404 handler - API route'ları için
+// 404 handler
 app.use((req, res) => {
   console.log('404 Not Found:', req.method, req.url);
   res.status(404).json({ error: `Route ${req.method} ${req.url} not found` });
@@ -106,14 +77,7 @@ const PORT = process.env.PORT || 5001;
 const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log('Environment:', process.env.NODE_ENV);
-  console.log('CORS enabled for:', [
-    'http://localhost:3000', 
-    'http://127.0.0.1:3000', 
-    'http://localhost:3001', 
-    'http://127.0.0.1:3001',
-    'https://full-mern-project.onrender.com',
-    'https://careerpath-jxoi.onrender.com'
-  ]);
+  console.log('CORS enabled for:', ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001']);
 });
 
 // Graceful shutdown
