@@ -19,8 +19,7 @@
   },
   "scripts": {
     "start": "DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false react-scripts start",
-    "build": "node scripts/build.js",
-    "build:original": "DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false BROWSER=none CI=false DISABLE_WORKBOX=true WDS_SOCKET_HOST=0.0.0.0 FAST_REFRESH=false react-scripts build",
+    "build": "DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false BROWSER=none CI=false DISABLE_WORKBOX=true react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

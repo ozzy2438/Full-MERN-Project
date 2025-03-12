@@ -37,7 +37,7 @@ CareerLens is an intelligent job application management platform designed to hel
 - **Jooble API**: For job search functionality
 
 ## 🌐 Live Demo
-You can access the live application here: [CareerLens](https://careerworld-kq40.onrender.com)
+You can access the live application here: [CareerLens](https://careerworld-kq40.onrender.com/login)
 
 ## 🚀 Getting Started
 
