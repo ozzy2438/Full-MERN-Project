@@ -73,18 +73,72 @@ app.use((req, res) => {
   res.status(404).json({ error: `Route ${req.method} ${req.url} not found` });
 });
 
-const PORT = process.env.PORT || 5001;
-const server = app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log('Environment:', process.env.NODE_ENV);
-  console.log('CORS enabled for:', ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001', 'https://full-mern-project.onrender.com', 'https://full-mern-project-frontend.onrender.com']);
-});
+const PORT = process.env.PORT || 5005;
 
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received. Shutting down gracefully...');
-  server.close(() => {
-    console.log('Server closed');
-    process.exit(0);
+// Function to start the server with port fallback
+const startServer = (port) => {
+  return new Promise((resolve, reject) => {
+    const server = app.listen(port)
+      .on('listening', () => {
+        console.log(`Server running on port ${port}`);
+        console.log('Environment:', process.env.NODE_ENV);
+        console.log('CORS enabled for:', ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001', 'https://full-mern-project.onrender.com', 'https://full-mern-project-frontend.onrender.com']);
+        resolve(server);
+      })
+      .on('error', (err) => {
+        if (err.code === 'EADDRINUSE') {
+          console.log(`Port ${port} is already in use`);
+          reject(err);
+        } else {
+          console.error(`Error starting server on port ${port}:`, err);
+          reject(err);
+        }
+      });
   });
-});
+};
+
+// Try to start the server with port fallback
+(async function() {
+  let server = null;
+  let currentPort = PORT;
+  
+  // Try the default port first
+  try {
+    server = await startServer(currentPort);
+  } catch (error) {
+    if (error.code === 'EADDRINUSE') {
+      // Try alternative ports if the default is in use
+      console.log(`Port ${currentPort} is already in use, trying alternative ports...`);
+      
+      for (let altPort = 5002; altPort < 5010; altPort++) {
+        try {
+          server = await startServer(altPort);
+          break; // Break the loop if server starts successfully
+        } catch (err) {
+          if (err.code === 'EADDRINUSE') {
+            console.log(`Port ${altPort} is also in use, trying next...`);
+          } else {
+            console.error(`Error starting server on port ${altPort}:`, err);
+          }
+        }
+      }
+    } else {
+      console.error('Failed to start server:', error);
+      process.exit(1);
+    }
+  }
+  
+  if (!server) {
+    console.error('Could not find an available port. Please close other applications using these ports and try again.');
+    process.exit(1);
+  }
+  
+  // Graceful shutdown
+  process.on('SIGTERM', () => {
+    console.log('SIGTERM received. Shutting down gracefully...');
+    server.close(() => {
+      console.log('Server closed');
+      process.exit(0);
+    });
+  });
+})();

@@ -1,7 +1,7 @@
 services:
   - type: web
     name: full-mern-project-frontend
-    buildCommand: cd frontend && chmod +x build.sh && ./build.sh
+    buildCommand: cd frontend && npm install --legacy-peer-deps && npm run build
     staticPublishPath: frontend/build
     envVars:
       - key: REACT_APP_API_URL
