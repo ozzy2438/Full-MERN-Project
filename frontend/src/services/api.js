@@ -8,7 +8,7 @@ const api = axios.create({
     'Content-Type': 'application/json',
     'Accept': 'application/json'
   },
-  withCredentials: true,
+  withCredentials: false, // Changed to false to avoid CORS preflight issues
   // Add retry logic
   retry: 3,
   retryDelay: 1000
@@ -60,7 +60,11 @@ api.interceptors.request.use(
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log('Added token to request headers');
     }
+    
+    // Log all headers for debugging
+    console.log('Request headers:', config.headers);
     
     return config;
   },

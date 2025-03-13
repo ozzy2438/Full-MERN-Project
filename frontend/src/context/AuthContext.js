@@ -17,15 +17,17 @@ export const AuthProvider = ({ children }) => {
       if (token) {
         try {
           // Set token in axios headers
-          api.defaults.headers.common['x-auth-token'] = token;
+          api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
           
           // Get user data
+          console.log('Attempting to load user with token');
           const response = await api.get('/auth/user');
+          console.log('User data loaded:', response.data);
           setUser(response.data);
         } catch (err) {
           console.error('Error loading user:', err);
           localStorage.removeItem('token');
-          delete api.defaults.headers.common['x-auth-token'];
+          delete api.defaults.headers.common['Authorization'];
         }
       }
       
@@ -38,19 +40,28 @@ export const AuthProvider = ({ children }) => {
   // Login function
   const login = async (email, password) => {
     try {
+      console.log('Attempting login with:', { email });
+      
       const response = await api.post('/auth/login', { email, password });
+      console.log('Login response:', response.data);
+      
+      if (!response.data || !response.data.token) {
+        throw new Error('No token received from server');
+      }
       
       // Save token
       localStorage.setItem('token', response.data.token);
-      api.defaults.headers.common['x-auth-token'] = response.data.token;
+      api.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
       
       // Get user data
       const userResponse = await api.get('/auth/user');
+      console.log('User data response:', userResponse.data);
       setUser(userResponse.data);
       
       setError(null);
       return true;
     } catch (err) {
+      console.error('Login error:', err);
       setError(err.response?.data?.error || 'An error occurred during login');
       return false;
     }
@@ -59,23 +70,33 @@ export const AuthProvider = ({ children }) => {
   // Register function
   const register = async (name, email, password) => {
     try {
+      console.log('Attempting registration with:', { name, email });
+      
       const response = await api.post('/auth/register', {
         name,
         email,
         password
       });
       
+      console.log('Registration response:', response.data);
+      
+      if (!response.data || !response.data.token) {
+        throw new Error('No token received from server');
+      }
+      
       // Save token
       localStorage.setItem('token', response.data.token);
-      api.defaults.headers.common['x-auth-token'] = response.data.token;
+      api.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
       
       // Get user data
       const userResponse = await api.get('/auth/user');
+      console.log('User data after registration:', userResponse.data);
       setUser(userResponse.data);
       
       setError(null);
       return true;
     } catch (err) {
+      console.error('Registration error:', err);
       setError(err.response?.data?.error || 'An error occurred during registration');
       return false;
     }
@@ -84,7 +105,7 @@ export const AuthProvider = ({ children }) => {
   // Logout function
   const logout = () => {
     localStorage.removeItem('token');
-    delete api.defaults.headers.common['x-auth-token'];
+    delete api.defaults.headers.common['Authorization'];
     setUser(null);
     setError(null);
   };
