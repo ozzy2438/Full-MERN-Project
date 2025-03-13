@@ -10,7 +10,7 @@ const app = express();
 
 // CORS settings
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001', 'http://localhost:3002', 'http://127.0.0.1:3002', 'http://localhost:5002', 'http://127.0.0.1:5002', 'https://full-mern-project-frontend.onrender.com', 'https://careerpath-jxoi.onrender.com'],
+  origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001', 'http://localhost:3002', 'http://127.0.0.1:3002', 'http://localhost:5002', 'http://127.0.0.1:5002', 'https://full-mern-project.onrender.com'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token', 'Accept'],
   credentials: true,
@@ -77,7 +77,7 @@ const PORT = process.env.PORT || 5002;
 const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log('Environment:', process.env.NODE_ENV);
-  console.log('CORS enabled for:', ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001', 'http://localhost:3002', 'http://127.0.0.1:3002', 'http://localhost:5002', 'http://127.0.0.1:5002', 'https://full-mern-project-frontend.onrender.com', 'https://careerpath-jxoi.onrender.com']);
+  console.log('CORS enabled for:', ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001', 'http://localhost:3002', 'http://127.0.0.1:3002', 'http://localhost:5002', 'http://127.0.0.1:5002', 'https://full-mern-project.onrender.com']);
 });
 
 // Graceful shutdown
