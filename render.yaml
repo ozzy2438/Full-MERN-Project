@@ -1,9 +1,9 @@
  services:
   - type: web
-    name: job-portal-backend
+    name: job-portal
     runtime: node
-    buildCommand: cd backend && npm install
-    startCommand: cd backend && node server.js
+    buildCommand: npm run install-all && npm run build
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
