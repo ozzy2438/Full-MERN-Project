@@ -1022,6 +1022,15 @@ function extractJobTitles(text, skills) {
   return [...new Set(recommendedTitles)].slice(0, 5);
 }
 
-console.log('CORS enabled for:', ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001']);
+// Apply CORS middleware specifically for this route
+router.use(cors({
+  origin: '*', // Allow all origins
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token', 'Accept'],
+  credentials: false,
+  optionsSuccessStatus: 200
+}));
+
+console.log('CORS enabled for analyze route with origin: *');
 
 module.exports = router;
