@@ -2,14 +2,9 @@
   "name": "careerlens-frontend",
   "version": "0.1.0",
   "private": true,
-  "homepage": ".",
-  "engines": {
-    "node": "16.20.0"
-  },
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
-    "@fullcalendar/core": "^6.1.15",
     "@fullcalendar/daygrid": "^6.1.15",
     "@fullcalendar/interaction": "^6.1.15",
     "@fullcalendar/react": "^6.1.15",
@@ -23,8 +18,8 @@
     "react-scripts": "^5.0.1"
   },
   "scripts": {
-    "start": "DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false react-scripts start",
-    "build": "DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false BROWSER=none CI=false DISABLE_WORKBOX=true SKIP_WORKBOX=true react-scripts build",
+    "start": "react-scripts start",
+    "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -39,10 +34,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "ajv": "^6.12.6",
-    "ajv-keywords": "^3.5.2",
-    "workbox-webpack-plugin": "^7.3.0"
   }
 }
