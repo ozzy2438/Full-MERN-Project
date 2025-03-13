@@ -10,6 +10,7 @@
     "vnpm": "npm"
   },
   "dependencies": {
+    "ajv": "^6.12.6",
     "concurrently": "^8.2.2"
   }
 }
