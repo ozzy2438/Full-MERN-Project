@@ -4,6 +4,7 @@ services:
     runtime: static
     buildCommand: npm install && npm run build
     staticPublishPath: build
+    rootDir: frontend
         
   - type: web
     name: full-mern-project-backend
