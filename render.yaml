@@ -1,11 +1,22 @@
- services:
+services:
   - type: web
-    name: job-portal
+    name: job-portal-backend
     runtime: node
-    buildCommand: npm run install-all && npm run build
+    buildCommand: cd backend && npm install
     startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 5002
+
+  - type: web
+    name: job-portal-frontend
+    runtime: node
+    buildCommand: ./frontend-build.sh
+    startCommand: cd frontend && npm run serve
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: REACT_APP_API_URL
+        value: https://job-portal-backend.onrender.com/api
