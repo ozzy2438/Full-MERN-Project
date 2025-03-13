@@ -1,0 +1,17 @@
+{
+  "name": "job-portal",
+  "version": "1.0.0",
+  "description": "Job Portal application with separate frontend and backend",
+  "scripts": {
+    "start": "cd backend && node server.js",
+    "build": "cd backend && npm install",
+    "install-backend": "cd backend && npm install",
+    "install-frontend": "cd frontend && npm install",
+    "start-backend": "cd backend && node server.js",
+    "start-frontend": "cd frontend && npm start"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "private": true
+}
