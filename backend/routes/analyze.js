@@ -71,13 +71,6 @@ router.post('/', async (req, res) => {
 
     console.log('Analysis request received, filePath:', filePath);
 
-    // PDF işleme kontrolünü kaldırıyoruz
-    // const pdfProcessingEnabled = process.env.PDF_PROCESSING_ENABLED === 'true';
-    // if (!pdfProcessingEnabled) {
-    //   console.log('PDF processing is disabled. Returning default analysis.');
-    //   return res.status(200).json(createBasicAnalysis("Your resume content would be analyzed here."));
-    // }
-
     if (!filePath) {
       console.error('No file path provided');
       return res.status(400).json({ success: false, error: 'File path is required' });
@@ -1028,5 +1021,7 @@ function extractJobTitles(text, skills) {
   // Remove duplicate titles and return at most 5 titles
   return [...new Set(recommendedTitles)].slice(0, 5);
 }
+
+console.log('CORS enabled for:', ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001']);
 
 module.exports = router;
