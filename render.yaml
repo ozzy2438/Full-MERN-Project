@@ -5,6 +5,9 @@ services:
     buildCommand: npm install && npm run build
     staticPublishPath: build
     rootDir: frontend
+    envVars:
+      - key: NODE_VERSION
+        value: 16.20.0
         
   - type: web
     name: full-mern-project-backend
