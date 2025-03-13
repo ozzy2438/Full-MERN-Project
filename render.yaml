@@ -2,13 +2,8 @@ services:
   - type: web
     name: full-mern-project-frontend
     runtime: static
-    buildCommand: cd frontend && npm install --legacy-peer-deps && npm install workbox-webpack-plugin jest-worker rollup-plugin-terser --save-dev && DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false BROWSER=none CI=false DISABLE_WORKBOX=true SKIP_WORKBOX=true npm run build
-    staticPublishPath: frontend/build
-    envVars:
-      - key: NODE_VERSION
-        value: 16.20.0
-      - key: NODE_OPTIONS
-        value: --max_old_space_size=4096
+    buildCommand: npm install && npm run build
+    staticPublishPath: build
         
   - type: web
     name: full-mern-project-backend
