@@ -1,8 +1,11 @@
 // frontend/src/services/api.js
 import axios from 'axios';
 
+// Hardcode the API URL for production to ensure it's correct
+const API_URL = 'https://full-mern-project.onrender.com/api';
+
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5001/api',
+  baseURL: API_URL,
   timeout: 120000, // Increase timeout to 2 minutes
   headers: {
     'Content-Type': 'application/json',
@@ -15,7 +18,7 @@ const api = axios.create({
 });
 
 // Log the API URL being used
-console.log('API URL:', process.env.REACT_APP_API_URL || 'http://localhost:5001/api');
+console.log('API URL (hardcoded):', API_URL);
 
 // Add a retry interceptor
 api.interceptors.response.use(undefined, async (err) => {
