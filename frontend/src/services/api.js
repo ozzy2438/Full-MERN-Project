@@ -14,6 +14,9 @@ const api = axios.create({
   retryDelay: 1000
 });
 
+// Log the API URL being used
+console.log('API URL:', process.env.REACT_APP_API_URL || 'http://localhost:5001/api');
+
 // Add a retry interceptor
 api.interceptors.response.use(undefined, async (err) => {
   const { config } = err;
