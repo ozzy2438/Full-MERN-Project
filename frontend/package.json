@@ -21,7 +21,7 @@
   },
   "scripts": {
     "start": "DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false react-scripts start",
-    "build": "DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false BROWSER=none CI=false DISABLE_WORKBOX=true react-scripts build",
+    "build": "DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false BROWSER=none CI=false DISABLE_WORKBOX=true SKIP_WORKBOX=true react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -38,7 +38,6 @@
     ]
   },
   "devDependencies": {
-    "jest-worker": "^29.7.0",
-    "workbox-webpack-plugin": "^6.5.4"
+    "jest-worker": "^29.7.0"
   }
 }
