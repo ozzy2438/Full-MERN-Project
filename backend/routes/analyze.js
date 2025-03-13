@@ -8,6 +8,9 @@ const cors = require('cors');
 
 const router = express.Router();
 
+// Import PDF.js
+const pdfjsLib = require('pdfjs-dist');
+
 // Function to extract text from PDF
 async function extractTextFromPDF(pdfPath) {
   try {
@@ -28,28 +31,63 @@ async function extractTextFromPDF(pdfPath) {
       throw new Error('PDF file is empty');
     }
     
-    // Read PDF
+    // Read PDF file as buffer
     const dataBuffer = fs.readFileSync(pdfPath);
     
-    // PDF parse options
-    const options = {
-      max: 10, // Maximum number of pages
-      version: 'v2.0.550'
-    };
-    
-    // Parse PDF
-    const data = await pdfParse(dataBuffer, options);
-    
-    console.log(`Length of text extracted from PDF: ${data.text.length}`);
-    console.log(`Sample of text extracted from PDF: ${data.text.substring(0, 100)}...`);
-    
-    // Check if text is empty
-    if (!data.text || data.text.trim().length === 0) {
-      console.error('Text could not be extracted from PDF or text is empty');
-      throw new Error('Text could not be extracted from PDF or text is empty');
+    try {
+      // Try using pdf-parse first
+      console.log('Attempting to extract text using pdf-parse...');
+      const options = {
+        max: 10, // Maximum number of pages
+        version: 'latest'
+      };
+      
+      const data = await pdfParse(dataBuffer, options);
+      
+      if (data.text && data.text.trim().length > 0) {
+        console.log(`Length of text extracted from PDF: ${data.text.length}`);
+        console.log(`Sample of text extracted from PDF: ${data.text.substring(0, 100)}...`);
+        return data.text;
+      } else {
+        console.log('pdf-parse returned empty text, trying PDF.js...');
+        throw new Error('Empty text from pdf-parse');
+      }
+    } catch (pdfParseError) {
+      console.log('pdf-parse failed, falling back to PDF.js:', pdfParseError.message);
+      
+      // Fallback to PDF.js
+      // Set up PDF.js global worker
+      pdfjsLib.GlobalWorkerOptions.workerSrc = require.resolve('pdfjs-dist/build/pdf.worker.js');
+      
+      // Load PDF document
+      const loadingTask = pdfjsLib.getDocument({ data: dataBuffer });
+      const pdfDocument = await loadingTask.promise;
+      
+      let fullText = '';
+      
+      // Get total number of pages
+      const numPages = pdfDocument.numPages;
+      console.log(`PDF document has ${numPages} pages`);
+      
+      // Extract text from each page
+      for (let i = 1; i <= Math.min(numPages, 10); i++) {
+        const page = await pdfDocument.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map(item => item.str).join(' ');
+        fullText += pageText + '\n';
+      }
+      
+      console.log(`Length of text extracted from PDF using PDF.js: ${fullText.length}`);
+      console.log(`Sample of text extracted from PDF using PDF.js: ${fullText.substring(0, 100)}...`);
+      
+      // Check if text is empty
+      if (!fullText || fullText.trim().length === 0) {
+        console.error('Text could not be extracted from PDF or text is empty');
+        throw new Error('Text could not be extracted from PDF or text is empty');
+      }
+      
+      return fullText;
     }
-    
-    return data.text;
   } catch (error) {
     console.error('PDF text extraction error:', error);
     
