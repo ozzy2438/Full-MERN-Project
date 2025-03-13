@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: full-mern-project-frontend
+    runtime: static
+    buildCommand: npm run build
+    staticPublishPath: ./frontend/build
+    envVars:
+      - key: NODE_VERSION
+        value: 16.20.0
+      - key: NODE_OPTIONS
+        value: --max_old_space_size=4096
+        
+  - type: web
+    name: full-mern-project-backend
+    runtime: node
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 16.20.0
+      - key: NODE_OPTIONS
+        value: --max_old_space_size=4096

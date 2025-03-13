@@ -1,0 +1,14 @@
+{
+  "name": "careerlens-full-stack",
+  "version": "1.0.0",
+  "description": "CareerLens Full Stack Application",
+  "scripts": {
+    "start": "cd backend && npm start",
+    "build": "cd frontend && npm install --legacy-peer-deps && DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false BROWSER=none CI=false DISABLE_WORKBOX=true npm run build",
+    "install-all": "npm install && cd frontend && npm install --legacy-peer-deps && cd ../backend && npm install",
+    "dev": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm start\""
+  },
+  "dependencies": {
+    "concurrently": "^8.2.2"
+  }
+} 
